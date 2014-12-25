@@ -20,7 +20,7 @@ install_requires = [
     'cloudify-plugins-common==3.1',
     'cloudify-rest-client==3.1',
     'cloudify-script-plugin==1.1',
-    'cloudify-diamond-plugin==1.1',
+    # 'cloudify-diamond-plugin==1.1',
     # 'cloudify-agent-installer==1.1',
     # 'cloudify-plugin-installer==1.1',
     # 'cloudify-windows-agent-installer==1.1',
