@@ -17,14 +17,14 @@
 from setuptools import setup
 
 install_requires = [
-    'cloudify-plugins-common==3.2a1',
-    'cloudify-rest-client==3.2a1',
-    'cloudify-script-plugin==1.1a2',
-    'cloudify-diamond-plugin==1.1a2',
-    # 'cloudify-agent-installer==1.1a2',
-    # 'cloudify-plugin-installer==1.1a2',
-    # 'cloudify-windows-agent-installer==1.1a2',
-    # 'cloudify-windows-plugin-installer==1.1a2',
+    'cloudify-plugins-common==3.1',
+    'cloudify-rest-client==3.1',
+    'cloudify-script-plugin==1.1',
+    'cloudify-diamond-plugin==1.1',
+    # 'cloudify-agent-installer==1.1',
+    # 'cloudify-plugin-installer==1.1',
+    # 'cloudify-windows-agent-installer==1.1',
+    # 'cloudify-windows-plugin-installer==1.1',
 ]
 
 try:
@@ -34,7 +34,7 @@ except ImportError, e:
 
 setup(
     name='cloudify-agent',
-    version='3.2a1',
+    version='3.1',
     author='Gigaspaces',
     author_email='cloudify@gigaspaces.com',
     packages=['cloudify_agent'],
