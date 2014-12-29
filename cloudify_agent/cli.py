@@ -46,7 +46,13 @@ def main():
     run('{0}/env/bin/python -m celery.bin.celeryd ')
 
 
-
+# resources management
+# if system == ubuntu and procman == sysv:
+#   move resources/sysv /etc/init.d
+# elif system == redhat and procman == sysv:
+#   move resources/sysv /etc/rc.d/init.d
+# elif system == ubuntu and procman == upstart:
+#   move resources/upstart /etc/init
 
 
 
