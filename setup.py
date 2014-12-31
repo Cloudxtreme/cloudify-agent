@@ -17,14 +17,16 @@
 from setuptools import setup
 
 install_requires = [
-    'cloudify-plugins-common==3.1',
-    'cloudify-rest-client==3.1',
-    'cloudify-script-plugin==1.1',
-    # 'cloudify-diamond-plugin==1.1',
-    # 'cloudify-agent-installer==1.1',
-    # 'cloudify-plugin-installer==1.1',
-    # 'cloudify-windows-agent-installer==1.1',
-    # 'cloudify-windows-plugin-installer==1.1',
+    'cloudify-plugins-common==3.2a1',
+    'cloudify-rest-client==3.2a1',
+    'cloudify-script-plugin==1.2a1',
+    'cloudify-diamond-plugin==1.2a1',
+    'cloudify-agent-installer-plugin==1.2a1',
+    'cloudify-plugin-installer-plugin==1.2a1',
+    'cloudify-windows-agent-installer-plugin==1.2a1',
+    'cloudify-windows-plugin-installer-plugin==1.2a1',
+    'click==3.3',
+    'celery==3.0.24'
 ]
 
 try:
@@ -41,9 +43,9 @@ setup(
     description='Cloudify\'s Agent',
     install_requires=install_requires,
     license='LICENSE',
-    # entry_points={
-    #     'console_scripts': [
-    #         'cfy-agent = cloudify_agent.cli:main',
-    #     ]
-    # }
+    entry_points={
+        'console_scripts': [
+            'cfy-agent = cloudify_agent.cli:main',
+        ]
+    }
 )

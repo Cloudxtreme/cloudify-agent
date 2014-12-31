@@ -1,81 +1,74 @@
+#########
+# Copyright (c) 2013 GigaSpaces Technologies Ltd. All rights reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+#  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  * See the License for the specific language governing permissions and
+#  * limitations under the License.
+
+import sys
 import argparse
+from celery.__main__ import main as celery_main
 
-
-def run(cmd, no_print=False):
-    """executes a command
-
-    :param string cmd: command to execute
-    """
-    p = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    (stdout, stderr) = p.communicate()
-    if not no_print:
-        if len(stdout) > 0:
-            lgr.debug('stdout: {0}'.format(stdout))
-        if len(stderr) > 0:
-            lgr.debug('stderr: {0}'.format(stderr))
-    p.stdout = stdout
-    p.strerr = stderr
-    return p
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--virtual-env', required=True)
-    parser.add_argument('--broker-url', required=True)
-    parser.add_argument('--install', required=False)
-    return parser.parse_args()
-
-
-def set_env():
-    # os.environ['BROKER_IP'] =
-    # os.environ['MANAGEMENT_IP'] =
-    # os.environ['BROKER_URL'] =
-    # os.environ['MANAGER_REST_PORT'] =
-    # os.environ['CELERY_WORK_DIR'] =
-    # os.environ['IS_MANAGEMENT_NODE'] =
-    # os.environ['AGENT_IP'] =
-    # os.environ['VIRTUALENV'] =
-    # os.environ['MANAGER_FILE_SERVER_URL'] =
-    # os.environ['MANAGER_FILE_SERVER_BLUEPRINTS_ROOT_URL'] =
-    # os.environ['PATH'] =
-    run('x')
 
 def main():
-    args = parse_args()
-    run('{0}/env/bin/python -m celery.bin.celeryd ')
+
+    if 'daemonize' in sys.argv:
+
+        # Use argparse to parse arguments for the
+        # daemonize command
+
+        args = _parse_daemonize_args(sys.argv[2:])
+        args.handler(args)
+
+    else:
+
+        # only other option is to directly delegate
+        # to celery command line.
+
+        sys.argv[0] = 'celery'
+        celery_main()
 
 
+def _daemonize(args):
+    env_file_path = args.env_file_path
+    print env_file_path
 
 
+def _parse_daemonize_args(args):
+    parser = argparse.ArgumentParser(
+        'cfy-agent daemonize',
+        description='Daemonize a cfy-agent. '
+                    'Currently only support /etc/init.d daemons.')
 
+    parser.add_argument('--user',
+                        dest='user',
+                        help='The user this agent will start under.')
 
+    parser.add_argument('--broker-ip',
+                        dest='broker_ip',
+                        help='IP address of the broker to connect to.',
+                        default='localhost')
 
+    parser.add_argument('--agent-ip',
+                        dest='agent_ip',
+                        help='The internal IP address of the machine.',
+                        default='127.0.0.1')
 
-# . {{ includes_file_path }}
-# CELERY_BASE_DIR="{{ celery_base_dir }}"
+    parser.add_argument('--queue',
+                        dest='queue',
+                        help='The queue name this agent should register to.')
 
-# # replaces management__worker
-# WORKER_MODIFIER="{{ worker_modifier }}"
+    parser.add_argument('--auto-scale',
+                        dest='auto_scale',
+                        help='The auto scaling parameters in the form of <minimum,maximum> (e.g 2,5)')
 
-# export BROKER_IP="{{ broker_ip }}"
-# export MANAGEMENT_IP="{{ management_ip }}"
-# export BROKER_URL="amqp://guest:guest@${BROKER_IP}:5672//"
-# export MANAGER_REST_PORT="80"
-# export CELERY_WORK_DIR="${CELERY_BASE_DIR}/cloudify.${WORKER_MODIFIER}/work"
-# export IS_MANAGEMENT_NODE="False"
-# export AGENT_IP="{{ agent_ip }}"
-# export VIRTUALENV="${CELERY_BASE_DIR}/cloudify.${WORKER_MODIFIER}/env"
-# export MANAGER_FILE_SERVER_URL="http://${MANAGEMENT_IP}:53229"
-# export MANAGER_FILE_SERVER_BLUEPRINTS_ROOT_URL="${MANAGER_FILE_SERVER_URL}/blueprints"
-# export PATH="${VIRTUALENV}/bin:${PATH}"
-
-# CELERYD_MULTI="${VIRTUALENV}/bin/celeryd-multi"
-# CELERYD_USER="{{ celery_user }}"
-# CELERYD_GROUP="{{ celery_group }}"
-# CELERY_TASK_SERIALIZER="json"
-# CELERY_RESULT_SERIALIZER="json"
-# CELERY_RESULT_BACKEND="$BROKER_URL"
-# DEFAULT_PID_FILE="${CELERY_WORK_DIR}/celery.pid"
-# DEFAULT_LOG_FILE="${CELERY_WORK_DIR}/celery.log"
-# CELERYD_OPTS="--events --loglevel=debug --app=cloudify --include=${INCLUDES} -Q ${WORKER_MODIFIER} --broker=${BROKER_URL} --hostname=${WORKER_MODIFIER} --autoscale={{ worker_autoscale }} --maxtasksperchild=10"
+    parser.set_defaults(handler=_daemonize)
+    return parser.parse_args(args)
