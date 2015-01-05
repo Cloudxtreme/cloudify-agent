@@ -26,7 +26,8 @@ install_requires = [
     'cloudify-windows-agent-installer-plugin==1.2a1',
     'cloudify-windows-plugin-installer-plugin==1.2a1',
     'click==3.3',
-    'celery==3.0.24'
+    'celery==3.0.24',
+    'jinja2==2.7.2'
 ]
 
 try:
@@ -39,13 +40,19 @@ setup(
     version='3.1',
     author='Gigaspaces',
     author_email='cloudify@gigaspaces.com',
-    packages=['cloudify_agent'],
-    description='Cloudify\'s Agent',
+    packages=[
+        'cloudify_agent',
+        'cloudify_agent.shell',
+        'cloudify_agent.api'],
+    package_data={
+        'cloudify_agent': ['resources/celeryd'],
+        },
+    description="Cloudify's Agent",
     install_requires=install_requires,
     license='LICENSE',
     entry_points={
         'console_scripts': [
-            'cfy-agent = cloudify_agent.cli:main',
+            'cloudify-agent = cloudify_agent.shell.cli:main',
         ]
     }
 )
