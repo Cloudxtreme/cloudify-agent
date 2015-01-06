@@ -14,16 +14,9 @@
 #  * limitations under the License.
 
 import click
-from cloudify.utils import setup_default_logger
 
 from cloudify_agent.api import daemon as daemon_api
 from cloudify_agent.shell import env
-
-
-shell_logger = setup_default_logger(
-    logger_name='shell.cloudify.agent.daemon',
-    fmt='%(message)s'
-)
 
 
 @click.command()
@@ -104,7 +97,10 @@ def create(queue,
               required=True)
 def register(queue, plugin):
     click.secho('Registering...', fg='green')
-    daemon_api.register(queue, plugin)
+    daemon_api.register(
+        queue=queue,
+        plugin=plugin
+    )
     click.secho('Successfully registered {0} to daemon with queue {1}'
                 .format(plugin, queue),
                 fg='green')

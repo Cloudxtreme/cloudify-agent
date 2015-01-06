@@ -42,10 +42,9 @@ def create(queue, agent_ip, manager_ip, user, **optional_parameters):
     return daemon
 
 
-def register(queue, plugin, **optional_parameters):
+def register(queue, plugin):
     daemon = GenericLinuxDaemon(
-        queue=queue,
-        **optional_parameters
+        queue=queue
     )
     daemon.register(plugin)
 
@@ -142,7 +141,7 @@ class GenericLinuxDaemon(object):
         response = self._run('sudo cat {0}'.format(self.includes_file_path))
         includes = response.std_out
         new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
-        self.logger.debug('Adding tasks from modules: {0}'.format(plugin_paths))
+        self.logger.debug('Adding operations from modules: {0}'.format(plugin_paths))
 
         # first write the content to a temp file
         temp_includes = tempfile.mkstemp()[1]

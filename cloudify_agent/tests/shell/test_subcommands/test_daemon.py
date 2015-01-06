@@ -44,12 +44,16 @@ class TestGenericLinuxDaemon(BaseCommandLineTestCase):
                 'broker_port': None,
                 'manager_port': None,
                 'autoscale': None
-
             }
         )
 
-    def test_create_optional_parameters(self):
-        self.fail()
-
     def test_register(self):
-        self.fail()
+        self.assert_method_called(
+            'cloudify-agent daemon register --queue=queue --plugin=plugin',
+            module=daemon,
+            function_name='register',
+            kwargs={
+                'queue': 'queue',
+                'plugin': 'plugin',
+            }
+        )
