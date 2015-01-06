@@ -23,7 +23,7 @@ from cloudify_agent.shell.subcommands import daemon
 
 @click.group()
 def main():
-    pass
+    _set_cli_except_hook()
 
 
 @click.command()
@@ -44,3 +44,14 @@ main.add_command(worker)
 
 daemon_sub_command.add_command(daemon.create)
 daemon_sub_command.add_command(daemon.register)
+
+
+def _set_cli_except_hook():
+
+    def new_excepthook(tpe, value, tb):
+
+        # TODO - add traceback with regards to debug flag
+        # TODO - add ability to specify debug flag
+        click.secho('[FATAL] {0}'.format(str(value)), fg='red')
+
+    sys.excepthook = new_excepthook

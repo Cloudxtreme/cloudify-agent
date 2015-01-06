@@ -13,35 +13,40 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import uuid
+
 import tempfile
 from click.testing import CliRunner
 
-from cloudify_agent.shell.subcommands.daemon import create
-from cloudify_agent.tests import BaseTestCase
+from cloudify_agent.api import daemon
+from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
 
-class TestGenericLinuxDaemon(BaseTestCase):
+class TestGenericLinuxDaemon(BaseCommandLineTestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
+        super(TestGenericLinuxDaemon, cls).setUpClass()
+        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-cli-tests-')
         cls.runner = CliRunner()
 
     def test_create(self):
-        queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
-        expected_message = 'Successfully created {0} daemon'.format(
-            'celeryd-{0}'.format(queue)
+        self.assert_method_called(
+            'cloudify-agent daemon create --queue=queue --agent-ip=127.0.0.1 --manager-ip=127.0.0.1 --user=elip',
+            module=daemon,
+            function_name='create',
+            kwargs={
+                'queue': 'queue',
+                'agent_ip': '127.0.0.1',
+                'manager_ip': '127.0.0.1',
+                'user': 'elip',
+                'basedir': None,
+                'broker_ip': None,
+                'broker_port': None,
+                'manager_port': None,
+                'autoscale': None
+
+            }
         )
-        result = self.runner.invoke(create, [
-            '--queue={0}'.format(queue),
-            '--ip=127.0.0.1',
-            '--manager_ip=127.0.0.1',
-            '--user=elip',
-            '--basedir={0}'.format(self.temp_folder)
-        ])
-        self.assertRegisteredTasks(queue)
-        self.assertIn(expected_message, result.output)
 
     def test_create_optional_parameters(self):
         self.fail()

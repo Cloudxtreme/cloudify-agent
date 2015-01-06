@@ -17,7 +17,7 @@ export CELERY_RESULT_SERIALIZER="json"
 export CELERY_RESULT_BACKEND="${CELERY_BROKER_URL}"
 
 # Daemon variables, used by the daemonization script
-CELERYD_GROUP="{{ group }}"
+CELERYD_GROUP="{{ user }}"
 CELERYD_USER="{{ user }}"
 CELERYD_PID_FILE="${CELERY_WORK_DIR}/celery.pid"
 CELERYD_LOG_FILE="${CELERY_WORK_DIR}/celery.log"

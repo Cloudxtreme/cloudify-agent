@@ -16,23 +16,27 @@
 import pkg_resources
 import tempfile
 import os
-import logging
 import sys
+import logging
 from jinja2 import Template
 
 import cloudify_agent
-from cloudify.utils import LocalCommandRunner
 from cloudify.utils import setup_default_logger
+from cloudify.utils import LocalCommandRunner
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
 
 
-def create(queue, ip, manager_ip, user, **optional_parameters):
+logger = setup_default_logger('cloudify.agent.api.daemon',
+                              level=logging.INFO)
+
+
+def create(queue, agent_ip, manager_ip, user, **optional_parameters):
     daemon = GenericLinuxDaemon(
         queue=queue,
         **optional_parameters
     )
-    daemon.create(ip=ip,
+    daemon.create(agent_ip=agent_ip,
                   manager_ip=manager_ip,
                   user=user)
     return daemon
@@ -53,7 +57,7 @@ class GenericLinuxDaemon(object):
 
     def __init__(self, queue,
                  **optional_parameters):
-        self.name = 'celeryd-{0}'.format(queue)
+        self.name = 'cloudify-agent-{0}'.format(queue)
 
         # Mandatory arguments
         self.queue = queue
@@ -65,9 +69,7 @@ class GenericLinuxDaemon(object):
         self.autoscale = optional_parameters.get('autoscale') or '0,5'
 
         # configure logger
-        self.logger = setup_default_logger('cloudify.agent.generic-daemon-{0}'
-                                           .format(self.name),
-                                           level=logging.INFO)
+        self.logger = logger
 
         # save for future reference
         self.optional_parameters = optional_parameters
@@ -124,11 +126,11 @@ class GenericLinuxDaemon(object):
             raise RuntimeError('Cannot create daemon {0}. {1} already exists.'
                                .format(self.name, self.includes_file_path))
 
-    def create(self, ip, manager_ip, user):
+    def create(self, agent_ip, manager_ip, user):
         self._validate_create()
         self._create_includes_file()
         self._create_script()
-        self._create_config(ip=ip,
+        self._create_config(agent_ip=agent_ip,
                             manager_ip=manager_ip,
                             user=user)
 
@@ -139,8 +141,8 @@ class GenericLinuxDaemon(object):
         # must use sudo to read it.
         response = self._run('sudo cat {0}'.format(self.includes_file_path))
         includes = response.std_out
-        self.logger.debug('Adding tasks: {0}'.format(includes))
         new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
+        self.logger.debug('Adding tasks from modules: {0}'.format(plugin_paths))
 
         # first write the content to a temp file
         temp_includes = tempfile.mkstemp()[1]
@@ -167,9 +169,8 @@ class GenericLinuxDaemon(object):
         self._run('sudo cp {0} {1}'.format(temp[1], self.script_path))
         self._run('sudo chmod +x {0}'.format(self.script_path))
 
-    def _create_config(self, ip, manager_ip, user):
+    def _create_config(self, agent_ip, manager_ip, user):
 
-        group = self.optional_parameters.get('group') or user
         broker_ip = self.optional_parameters.get('broker_ip') or manager_ip
 
         self.work_dir = os.path.join(self.basedir, self.name, 'work')
@@ -185,10 +186,9 @@ class GenericLinuxDaemon(object):
             work_dir=self.work_dir,
             manager_ip=manager_ip,
             manager_port=self.manager_port,
-            agent_ip=ip,
+            agent_ip=agent_ip,
             broker_ip=broker_ip,
             broker_port=self.broker_port,
-            group=group,
             user=user,
             autoscale=self.autoscale,
             includes_file_path=self.includes_file_path,

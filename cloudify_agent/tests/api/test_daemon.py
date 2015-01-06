@@ -16,6 +16,7 @@
 import tempfile
 import os
 import uuid
+import logging
 
 from cloudify_agent.api.daemon import GenericLinuxDaemon
 from cloudify_agent.api import daemon as daemon_api
@@ -59,34 +60,34 @@ class TestGenericLinuxDaemon(BaseTestCase):
 
     def setUp(self):
         super(TestGenericLinuxDaemon, self).setUp()
-        self.temp_folder = tempfile.mkdtemp()
+        self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-api-tests-')
         self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
         self.runner = LocalCommandRunner(self.logger)
-        self.daemon_started = False
+        self.daemon_name = None
+        logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
     def tearDown(self):
         super(TestGenericLinuxDaemon, self).tearDown()
-        if self.daemon_started:
-            self.runner.run('sudo service celeryd-{0} stop'.format(self.queue))
+        if self.daemon_name:
+            self.runner.run('sudo service cloudify-agent-{0} stop'.format(self.queue))
 
     def test_create(self):
         daemon = daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
-            basedir=self.temp_folder,
-            verbose=True,
+            basedir=self.temp_folder
         )
 
         self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_started = True
+        self.daemon_name = daemon.name
         self.assertRegisteredTasks(self.queue)
 
     def test_create_twice(self):
         daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
             basedir=self.temp_folder
@@ -101,14 +102,14 @@ class TestGenericLinuxDaemon(BaseTestCase):
     def test_create_twice_only_script_path_exists(self):
         daemon = daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
             basedir=self.temp_folder
         )
 
         # delete includes and config files
-        runner = LocalCommandRunner()
+        runner = LocalCommandRunner(self.logger)
         runner.run('sudo rm {0}'.format(daemon.includes_file_path))
         runner.run('sudo rm {0}'.format(daemon.config_path))
 
@@ -122,16 +123,15 @@ class TestGenericLinuxDaemon(BaseTestCase):
     def test_create_twice_only_config_path_exists(self):
         daemon = daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
             basedir=self.temp_folder
         )
 
         # delete includes and script files
-        runner = LocalCommandRunner()
-        runner.run('sudo rm {0}'.format(daemon.includes_file_path))
-        runner.run('sudo rm {0}'.format(daemon.script_path))
+        self.runner.run('sudo rm {0}'.format(daemon.includes_file_path))
+        self.runner.run('sudo rm {0}'.format(daemon.script_path))
 
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
@@ -143,16 +143,15 @@ class TestGenericLinuxDaemon(BaseTestCase):
     def test_create_twice_only_includes_path_exists(self):
         daemon = daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
             basedir=self.temp_folder
         )
 
         # delete config and script files
-        runner = LocalCommandRunner()
-        runner.run('sudo rm {0}'.format(daemon.config_path))
-        runner.run('sudo rm {0}'.format(daemon.script_path))
+        self.runner.run('sudo rm {0}'.format(daemon.config_path))
+        self.runner.run('sudo rm {0}'.format(daemon.script_path))
 
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
@@ -164,11 +163,10 @@ class TestGenericLinuxDaemon(BaseTestCase):
     def test_register(self):
         daemon = daemon_api.create(
             queue=self.queue,
-            ip='127.0.0.1',
+            agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user='elip',
-            basedir=self.temp_folder,
-            verbose=True
+            basedir=self.temp_folder
         )
         from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
@@ -176,7 +174,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         daemon_api.register(self.queue, 'mock-plugin')
-        LocalCommandRunner().run('sudo service {0} start'.format(daemon.name))
-        self.daemon_started = True
+        self.runner.run('sudo service {0} start'.format(daemon.name))
+        self.daemon_name = daemon.name
         self.assertRegisteredTasks(self.queue,
                                    additional_tasks={'mock_plugin.tasks.run'})

@@ -22,6 +22,10 @@ from cloudify_agent.tests import BaseTestCase
 
 class BaseCommandLineTestCase(BaseTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(BaseCommandLineTestCase, cls).setUpClass()
+
     def _run(self, command):
         sys.argv = command.split()
         cli.main()
@@ -35,7 +39,7 @@ class BaseCommandLineTestCase(BaseTestCase):
             try:
                 self._run(cli_command)
             except BaseException as e:
-                self.logger.info(e.message)
+                self.logger.info(str(e))
             mock.assert_called_with(**kwargs)
 
 

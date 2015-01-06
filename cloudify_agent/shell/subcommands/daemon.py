@@ -26,70 +26,54 @@ shell_logger = setup_default_logger(
 )
 
 
-def _help(message, envvar_name):
-    return '{0}. Configurable via the {1} ' \
-           'environment variable.'\
-           .format(message, envvar_name)
-
-
 @click.command()
-@click.option('--queue',
-              help=_help('The name of the queue to register the agent to',
-                         env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--queue', '-q',
+              help='The name of the queue to register the agent to. [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_QUEUE),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_QUEUE)
-@click.option('--ip',
-              help=_help('A resolvable IP address for this host',
-                         env.CLOUDIFY_AGENT_IP),
+@click.option('--agent-ip', '-ai',
+              help='A resolvable IP address for this host. [{0}]'
+                   .format(env.CLOUDIFY_AGENT_IP),
               required=True,
               envvar=env.CLOUDIFY_AGENT_IP)
-@click.option('--manager-ip',
-              help=_help('The manager IP to connect to',
-                         env.CLOUDIFY_MANAGER_IP),
+@click.option('--manager-ip', '-mi',
+              help='The manager IP to connect to. [{0}]'
+                   .format(env.CLOUDIFY_MANAGER_IP),
               required=True,
               envvar=env.CLOUDIFY_MANAGER_IP)
-@click.option('--user',
-              help=_help('The user to create this daemon under',
-                         env.CLOUDIFY_DAEMON_USER),
+@click.option('--user', '-u',
+              help='The user to create this daemon under. [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_USER),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_USER)
-@click.option('--group',
-              help=_help('The group to create this daemon under. If not specified, '
-                         'it will have the same value as the --user option',
-                         env.CLOUDIFY_DAEMON_GROUP),
-              envvar=env.CLOUDIFY_DAEMON_GROUP)
-@click.option('--basedir',
-              help=_help('Base directory for runtime files (pid, log). '
-                         'Defaults to current working directory.',
-                         env.CLOUDIFY_DAEMON_BASEDIR),
+@click.option('--basedir', '-bd',
+              help='Base directory for runtime files (pid, log). '
+                   'Defaults to current working directory. [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_BASEDIR),
               envvar=env.CLOUDIFY_DAEMON_BASEDIR)
-@click.option('--broker-ip',
-              help=_help('The broker ip to connect to. If not specified, the --manager_ip '
-                         'option will be used.',
-                         env.CLOUDIFY_BROKER_IP),
+@click.option('--broker-ip', '-bi',
+              help='The broker ip to connect to. If not specified, the --manager_ip '
+                   'option will be used. [{0}]'
+                   .format(env.CLOUDIFY_BROKER_IP),
               envvar=env.CLOUDIFY_BROKER_IP)
-@click.option('--broker-port',
-              help=_help('The broker port to connect to.',
-                         env.CLOUDIFY_BROKER_PORT),
+@click.option('--broker-port', '-bp',
+              help='The broker port to connect to. [{0}]'
+                   .format(env.CLOUDIFY_BROKER_PORT),
               envvar=env.CLOUDIFY_BROKER_PORT)
-@click.option('--manager-port',
-              help=_help('The manager REST gateway port to connect to.',
-                         env.CLOUDIFY_MANAGER_PORT),
+@click.option('--manager-port', '-mp',
+              help='The manager REST gateway port to connect to. [{0}]'
+                   .format(env.CLOUDIFY_MANAGER_PORT),
               envvar=env.CLOUDIFY_MANAGER_PORT)
-@click.option('--autoscale',
-              help=_help('Autoscale parameters in the form of <minimum,maximum> (e.g 2,5)',
-                         env.CLOUDIFY_DAEMON_AUTOSCALE),
+@click.option('--autoscale', '-as',
+              help='Autoscale parameters in the form of <minimum,maximum> (e.g 2,5). [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
               envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
 def create(queue,
-           ip,
+           agent_ip,
            manager_ip,
            user,
-           group,
-           basedir,
-           broker_ip,
-           broker_port,
-           manager_port,
-           autoscale):
+           **optional_parameters):
 
     """
     Creates the necessary configuration files for the daemon.
@@ -97,34 +81,25 @@ def create(queue,
 
     """
 
-    optional_parameters = {
-        'group': group,
-        'broker_ip': broker_ip,
-        'broker_port': broker_port,
-        'manager_port': manager_port,
-        'autoscale': autoscale,
-        'basedir': basedir
-    }
-
-    click.secho('Creating...', fg='green')
+    click.echo('Creating...')
 
     daemon = daemon_api.create(
         queue=queue,
-        ip=ip,
+        agent_ip=agent_ip,
         manager_ip=manager_ip,
         user=user,
         **optional_parameters
     )
-    click.secho('Successfully created {0} daemon'.format(daemon.name), fg='green')
+    click.echo('Successfully created {0} daemon'.format(daemon.name))
 
 
 @click.command()
-@click.option('--queue',
-              help=_help('The queue of the worker for whom to register the plugin.',
-                         env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--queue', '-q',
+              help='The queue of the worker for whom to register the plugin. [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_QUEUE),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_QUEUE)
-@click.option('--plugin',
+@click.option('--plugin', '-p',
               help='The plugin name. As stated in its setup.py file.',
               required=True)
 def register(queue, plugin):

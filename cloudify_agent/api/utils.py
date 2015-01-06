@@ -16,10 +16,6 @@
 from cloudify.utils import LocalCommandRunner
 
 
-def create_builtin_includes():
-    pass
-
-
 def extract_module_paths_from_name(virtualenv_path, plugin_name):
     module_paths = []
     runner = LocalCommandRunner()
