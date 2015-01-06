@@ -18,7 +18,7 @@ import os
 import uuid
 import logging
 
-from cloudify_agent.api.daemon import GenericLinuxDaemon
+from cloudify_agent.api.daemon import Daemon
 from cloudify_agent.api import daemon as daemon_api
 from cloudify.utils import LocalCommandRunner
 
@@ -35,8 +35,8 @@ class TestDaemonDefaults(BaseTestCase):
     @classmethod
     def setUpClass(cls):
 
-        cls.daemon = GenericLinuxDaemon(
-            queue='test_queue',
+        cls.daemon = Daemon(
+            queue='test_queue'
         )
 
     def test_default_basedir(self):

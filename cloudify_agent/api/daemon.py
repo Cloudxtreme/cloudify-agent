@@ -49,13 +49,10 @@ def register(queue, plugin):
     daemon.register(plugin)
 
 
-class GenericLinuxDaemon(object):
+class Daemon(object):
 
-    SCRIPT_DIR = '/etc/init.d'
-    CONFIG_DIR = '/etc/default'
+    def __init__(self, queue, **optional_parameters):
 
-    def __init__(self, queue,
-                 **optional_parameters):
         self.name = 'cloudify-agent-{0}'.format(queue)
 
         # Mandatory arguments
@@ -73,12 +70,28 @@ class GenericLinuxDaemon(object):
         # save for future reference
         self.optional_parameters = optional_parameters
 
+    def create(self, agent_ip, manager_ip, user):
+        raise NotImplementedError('Must be implemented by subclass')
+
+    def register(self, plugin):
+        raise NotImplementedError('Must be implemented by subclass')
+
+    def delete(self):
+        raise NotImplementedError('Must be implemented by subclass')
+
+
+class GenericLinuxDaemon(Daemon):
+
+    SCRIPT_DIR = '/etc/init.d'
+    CONFIG_DIR = '/etc/default'
+
+    def __init__(self, queue, **optional_parameters):
+        super(GenericLinuxDaemon, self).__init__(queue, **optional_parameters)
+
         # init.d specific configuration
         self.script_path = os.path.join(self.SCRIPT_DIR, self.name)
         self.config_path = os.path.join(self.CONFIG_DIR, self.name)
         self.virtualenv_path = os.path.dirname(os.path.dirname(sys.executable))
-
-        # create necessary files and directories
         self.includes_file_path = os.path.join(self.CONFIG_DIR,
                                                '{0}-includes'.format(self.name))
 
