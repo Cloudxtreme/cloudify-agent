@@ -15,15 +15,21 @@
 
 import sys
 import click
+import logging
+import StringIO
+import traceback
 
 from celery import __main__
+from cloudify.utils import setup_default_logger
 
 from cloudify_agent.shell.subcommands import daemon
 
 
 @click.group()
-def main():
-    sys.excepthook = exception_hook
+@click.option('--debug/--no-debug', default=False)
+def main(debug):
+    _set_logger(debug)
+    _set_exception_hook(debug)
 
 
 @click.command()
@@ -46,7 +52,35 @@ daemon_sub_command.add_command(daemon.create)
 daemon_sub_command.add_command(daemon.register)
 
 
-def exception_hook(tpe, value, tb):
-    output = '[FATAL] {0}'.format(str(value))
-    click.secho(output, fg='red')
-    return output
+def _set_logger(debug):
+
+    level = logging.DEBUG if debug else logging.INFO
+
+    # we change the format of the api logging
+    # to be more shell like.
+    from cloudify_agent.api.daemon import LOGGER_NAME
+    setup_default_logger(LOGGER_NAME,
+                         level=level,
+                         fmt='%(message)s')
+
+
+def _set_exception_hook(debug):
+
+    def exception_hook(tpe, value, tb):
+        output = '[FATAL] {0}'.format(str(value))
+
+        if debug:
+            # print traceback if verbose
+            s_traceback = StringIO.StringIO()
+            traceback.print_exception(
+                etype=tpe,
+                value=value,
+                tb=tb,
+                file=s_traceback)
+            output = s_traceback.getvalue()
+            click.echo(output)
+        else:
+            click.secho(output, fg='red')
+        return output
+
+    sys.excepthook = exception_hook

@@ -27,7 +27,9 @@ from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
 
 
-logger = setup_default_logger('cloudify.agent.api.daemon',
+LOGGER_NAME = 'cloudify.agent.api.daemon'
+
+logger = setup_default_logger(LOGGER_NAME,
                               level=logging.INFO)
 
 
