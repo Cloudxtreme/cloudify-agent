@@ -34,5 +34,3 @@ class TestCommandLine(BaseCommandLineTestCase):
             import sys
             output = sys.excepthook(*sys.exc_info())
             self.assertEqual('[FATAL] Error', output)
-
-
