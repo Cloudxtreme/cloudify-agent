@@ -178,4 +178,4 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         self.runner.run('sudo service {0} start'.format(daemon.name))
         self.daemon_name = daemon.name
         self.assertRegisteredTasks(self.queue,
-                                   additional_tasks={'mock_plugin.tasks.run'})
+                                   additional_tasks=set(['mock_plugin.tasks.run']))
