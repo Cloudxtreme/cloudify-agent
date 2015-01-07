@@ -37,7 +37,7 @@ except ImportError, e:
 
 setup(
     name='cloudify-agent',
-    version='3.1',
+    version='3.2a1',
     author='Gigaspaces',
     author_email='cloudify@gigaspaces.com',
     packages=[
