@@ -22,10 +22,10 @@ from cloudify_agent.api.daemon import Daemon
 from cloudify_agent.api import daemon as daemon_api
 from cloudify.utils import LocalCommandRunner
 
-from cloudify_agent.tests import BaseTestCase
+from cloudify_agent.tests.api import BaseApiTestCase
 
 
-class TestDaemonDefaults(BaseTestCase):
+class TestDaemonDefaults(BaseApiTestCase):
 
     """
     Tests the fallback behavior of all optional
@@ -52,7 +52,7 @@ class TestDaemonDefaults(BaseTestCase):
         self.assertEqual('0,5', self.daemon.autoscale)
 
 
-class TestGenericLinuxDaemon(BaseTestCase):
+class TestGenericLinuxDaemon(BaseApiTestCase):
 
     """
     Tests the functionality of the GenericLinuxDaemon.

@@ -17,32 +17,7 @@ import testtools
 import logging
 import getpass
 
-from cloudify.celery import celery
 from cloudify.utils import setup_default_logger
-
-
-BUILT_IN_TASKS = [
-    'script_runner.tasks.execute_workflow',
-    'script_runner.tasks.run',
-    'diamond_agent.tasks.install',
-    'diamond_agent.tasks.uninstall',
-    'diamond_agent.tasks.start',
-    'diamond_agent.tasks.stop',
-    'diamond_agent.tasks.add_collectors',
-    'diamond_agent.tasks.del_collectors',
-    'worker_installer.tasks.install',
-    'worker_installer.tasks.uninstall',
-    'worker_installer.tasks.start',
-    'worker_installer.tasks.stop',
-    'worker_installer.tasks.restart',
-    'plugin_installer.tasks.install',
-    'windows_agent_installer.tasks.install',
-    'windows_agent_installer.tasks.uninstall',
-    'windows_agent_installer.tasks.start',
-    'windows_agent_installer.tasks.stop',
-    'windows_agent_installer.tasks.restart',
-    'windows_plugin_installer.tasks.install'
-]
 
 
 class BaseTestCase(testtools.TestCase):
@@ -53,19 +28,3 @@ class BaseTestCase(testtools.TestCase):
             'cloudify.agent.tests',
             level=logging.DEBUG)
         cls.username = getpass.getuser()
-
-    def assertRegisteredTasks(self, queue, additional_tasks=None):
-        # assert tasks are registered as we expect
-        if not additional_tasks:
-            additional_tasks = set()
-        destination = 'celery.{0}'.format(queue)
-        inspect = celery.control.inspect(destination=[destination])
-        registered = inspect.registered() or {}
-
-        def include(task):
-            return 'celery' not in task
-
-        daemon_tasks = set(filter(include, set(registered[destination])))
-        expected_tasks = set(BUILT_IN_TASKS)
-        expected_tasks.update(additional_tasks)
-        self.assertEqual(expected_tasks, daemon_tasks)
