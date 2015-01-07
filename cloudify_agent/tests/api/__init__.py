@@ -13,7 +13,11 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import uuid
+import logging
+
 from cloudify.celery import celery
+from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.tests import BaseTestCase
 
@@ -46,6 +50,9 @@ class BaseApiTestCase(BaseTestCase):
 
     def setUp(self):
         super(BaseApiTestCase, self).setUp()
+        self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
+        self.runner = LocalCommandRunner(self.logger)
+        logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
     @classmethod
     def setUpClass(cls):

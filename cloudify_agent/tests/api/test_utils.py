@@ -25,6 +25,19 @@ from cloudify_agent.tests.api import BaseApiTestCase
 
 class TestUtils(BaseApiTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(TestUtils, cls).setUpClass()
+        if 'TRAVIS_BUILD_DIR' not in os.environ \
+                and 'FORCE_TESTS' not in os.environ:
+            raise RuntimeError(
+                'Error! These tests require sudo '
+                'permissions and may manipulate system wide files. '
+                'Therefore they are only executed on the travis CI system. '
+                'If you are ABSOLUTELY sure you wish to '
+                'run them on your local box, set the FORCE_TESTS '
+                'environment variable to bypass this restriction.')
+
     def test_render_template(self):
 
         template = '{"name": "{{ name }}"}'
@@ -34,19 +47,16 @@ class TestUtils(BaseApiTestCase):
         rendered = json.load(open(file_path))
         self.assertEqual(rendered['name'], 'test_name')
 
-    def test_load_existing_daemon_context(self):
-        dumped_context = {'a': 'value_a'}
-        dump_daemon_context('test_queue', context=dumped_context)
-        loaded_context = load_daemon_context('test_queue')
-        self.assertEqual(dumped_context, loaded_context)
-
     def test_load_non_existing_daemon_context(self):
-        self.assertRaises(RuntimeError, load_daemon_context, 'test_queue')
+        self.assertRaises(RuntimeError, load_daemon_context,
+                          self.logger,
+                          'non_existing_queue')
 
-    def test_dump_daemon_context(self):
+    def test_daemon_context(self):
         dumped_context = {'a': 'value_a'}
-        dump_daemon_context('test_queue', context=dumped_context)
-        context_path = os.path.join(os.getcwd(), '.cloudify-agent',
-                                    'test_queue.json')
-        loaded_context = json.load(open(context_path))
+        dump_daemon_context(logger=self.logger,
+                            queue='test_queue',
+                            context=dumped_context)
+        loaded_context = load_daemon_context(logger=self.logger,
+                                             queue='test_queue')
         self.assertEqual(dumped_context, loaded_context)

@@ -18,7 +18,9 @@ import tempfile
 import json
 from jinja2 import Template
 
-CONTEXT_FOLDER_NAME = '.cloudify-agent'
+from cloudify.utils import LocalCommandRunner
+
+STATE_FOLDER = '/var/lib/cloudify-agent'
 
 
 def render_template(template, **values):
@@ -31,23 +33,31 @@ def render_template(template, **values):
         return f.name
 
 
-def load_daemon_context(queue):
-    context_path = os.path.join(os.getcwd(), CONTEXT_FOLDER_NAME,
+def load_daemon_context(logger, queue):
+    context_path = os.path.join(STATE_FOLDER,
                                 '{0}.json'.format(queue))
     if not os.path.exists(context_path):
         raise RuntimeError('Cannot load daemon context: {0} does not exists. '
                            'Are you sure you are in the correct directory?'
                            .format(queue))
-    return json.load(open(context_path))
+    runner = LocalCommandRunner(logger=logger)
+    contents = runner.run('sudo cat {0}'
+                          .format(context_path)).std_out
+    return json.loads(contents)
 
 
-def dump_daemon_context(queue, context):
+def dump_daemon_context(logger, queue, context):
 
-    context_folder = os.path.join(os.getcwd(), CONTEXT_FOLDER_NAME)
-    context_path = os.path.join(context_folder,
+    runner = LocalCommandRunner(logger=logger)
+    if not os.path.exists(STATE_FOLDER):
+        runner.run('sudo mkdir {0}'
+                   .format(STATE_FOLDER))
+
+    context_path = os.path.join(STATE_FOLDER,
                                 '{0}.json'.format(queue))
-    if not os.path.exists(context_folder):
-        os.makedirs(context_folder)
 
-    with open(context_path, 'w') as outfile:
-        json.dump(context, outfile)
+    temp = tempfile.mkstemp()
+    with open(temp[1], 'w') as f:
+        json.dump(context, f, indent=2)
+
+    runner.run('sudo cp {0} {1}'.format(temp[1], context_path))

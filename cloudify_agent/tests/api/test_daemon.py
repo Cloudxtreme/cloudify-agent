@@ -13,8 +13,6 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import uuid
-import logging
 import getpass
 import os
 
@@ -74,9 +72,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
     def setUp(self):
         super(TestGenericLinuxDaemon, self).setUp()
-        self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
-        self.runner = LocalCommandRunner(self.logger)
-        logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
     def tearDown(self):
         super(TestGenericLinuxDaemon, self).tearDown()
@@ -329,7 +324,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             process_management=self.PROCESS_MANAGEMENT
         )
         daemon_api.start(self.queue)
-        self.assertRaises(RuntimeError, daemon_api.delete)
+        self.assertRaises(RuntimeError, daemon_api.delete, self.queue)
 
     def test_delete_after_stop(self):
         daemon = daemon_api.create(

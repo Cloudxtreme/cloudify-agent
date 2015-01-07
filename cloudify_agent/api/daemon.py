@@ -37,7 +37,6 @@ logger = setup_default_logger(LOGGER_NAME,
 
 def create(queue, agent_ip, manager_ip, user, process_management,
            **optional_parameters):
-
     daemon = HANDLERS[process_management](
         queue=queue,
         **optional_parameters
@@ -45,17 +44,11 @@ def create(queue, agent_ip, manager_ip, user, process_management,
     daemon.create(agent_ip=agent_ip,
                   manager_ip=manager_ip,
                   user=user)
-    utils.dump_daemon_context(
-        queue,
-        context={
-            'process_management': process_management
-        }
-    )
     return daemon
 
 
 def start(queue):
-    context = utils.load_daemon_context(queue)
+    context = utils.load_daemon_context(logger=logger, queue=queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
@@ -64,7 +57,7 @@ def start(queue):
 
 
 def stop(queue):
-    context = utils.load_daemon_context(queue)
+    context = utils.load_daemon_context(logger=logger, queue=queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
@@ -73,7 +66,7 @@ def stop(queue):
 
 
 def delete(queue):
-    context = utils.load_daemon_context(queue)
+    context = utils.load_daemon_context(logger=logger, queue=queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
@@ -82,7 +75,7 @@ def delete(queue):
 
 
 def register(queue, plugin):
-    context = utils.load_daemon_context(queue)
+    context = utils.load_daemon_context(logger=logger, queue=queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
@@ -91,7 +84,7 @@ def register(queue, plugin):
 
 
 def restart(queue):
-    context = utils.load_daemon_context(queue)
+    context = utils.load_daemon_context(logger=logger, queue=queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
@@ -159,6 +152,7 @@ class GenericLinuxDaemon(Daemon):
 
     SCRIPT_DIR = '/etc/init.d'
     CONFIG_DIR = '/etc/default'
+    PROCESS_MANAGEMENT = 'init.d'
 
     def __init__(self, queue, **optional_parameters):
         super(GenericLinuxDaemon, self).__init__(queue, **optional_parameters)
@@ -178,6 +172,7 @@ class GenericLinuxDaemon(Daemon):
         self._create_config(agent_ip=agent_ip,
                             manager_ip=manager_ip,
                             user=user)
+        self._create_context()
 
     def start(self):
         self._run('sudo service {0} start'.format(self.name))
@@ -212,8 +207,7 @@ class GenericLinuxDaemon(Daemon):
         self._run('sudo rm -rf {0}'.format(self.workdir))
 
     def restart(self):
-        self.stop()
-        self.start()
+        self._run('sudo service {0} restart'.format(self.name))
 
     def _run(self, command):
 
@@ -248,6 +242,16 @@ class GenericLinuxDaemon(Daemon):
 
         self._run('sudo cp {0} {1}'.format(temp_includes,
                                            self.includes_file_path))
+
+    def _create_context(self):
+        utils.dump_daemon_context(
+            self.logger,
+            self.queue,
+            {
+                'process_management': self.PROCESS_MANAGEMENT,
+                'optional_parameters': self.optional_parameters
+            }
+        )
 
     def _validate_create(self):
 
@@ -340,5 +344,5 @@ class GenericLinuxDaemon(Daemon):
 
 
 HANDLERS = {
-    'init.d': GenericLinuxDaemon
+    GenericLinuxDaemon.PROCESS_MANAGEMENT: GenericLinuxDaemon
 }
