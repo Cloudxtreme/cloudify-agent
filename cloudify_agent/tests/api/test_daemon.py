@@ -95,7 +95,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         )
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
-                          ip='127.0.0.1',
+                          agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
                           basedir=self.temp_folder)
@@ -116,7 +116,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
-                          ip='127.0.0.1',
+                          agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
                           basedir=self.temp_folder)
@@ -136,7 +136,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
-                          ip='127.0.0.1',
+                          agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
                           basedir=self.temp_folder)
@@ -156,7 +156,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
-                          ip='127.0.0.1',
+                          agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
                           basedir=self.temp_folder)

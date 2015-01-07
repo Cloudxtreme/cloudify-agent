@@ -5,7 +5,7 @@ python:
 
 services:
     - rabbitmq
-    
+
 env:
   - TOX_ENV=flake8
   - TOX_ENV=py27
