@@ -18,6 +18,8 @@ import tempfile
 import json
 from jinja2 import Template
 
+CONTEXT_FOLDER_NAME = '.cloudify-agent'
+
 
 def render_template(template, **values):
     template = Template(template)
@@ -30,7 +32,7 @@ def render_template(template, **values):
 
 
 def load_daemon_context(queue):
-    context_path = os.path.join(os.getcwd(),
+    context_path = os.path.join(os.getcwd(), CONTEXT_FOLDER_NAME,
                                 '{0}.json'.format(queue))
     if not os.path.exists(context_path):
         raise RuntimeError('Cannot load daemon context: {0} does not exists. '
@@ -41,8 +43,11 @@ def load_daemon_context(queue):
 
 def dump_daemon_context(queue, context):
 
-    context_path = os.path.join(os.getcwd(),
+    context_folder = os.path.join(os.getcwd(), CONTEXT_FOLDER_NAME)
+    context_path = os.path.join(context_folder,
                                 '{0}.json'.format(queue))
+    if not os.path.exists(context_folder):
+        os.makedirs(context_folder)
 
     with open(context_path, 'w') as outfile:
         json.dump(context, outfile)

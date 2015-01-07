@@ -41,13 +41,42 @@ class TestGenericLinuxDaemonCommandLine(BaseCommandLineTestCase):
             }
         )
 
+    def test_start(self):
+        self.assert_method_called(
+            'cloudify-agent daemon start --queue=queue',
+            module=daemon,
+            function_name='start',
+            args=['queue']
+        )
+
+    def test_stop(self):
+        self.assert_method_called(
+            'cloudify-agent daemon stop --queue=queue',
+            module=daemon,
+            function_name='stop',
+            args=['queue']
+        )
+
+    def test_delete(self):
+        self.assert_method_called(
+            'cloudify-agent daemon delete --queue=queue',
+            module=daemon,
+            function_name='delete',
+            args=['queue']
+        )
+
+    def test_restart(self):
+        self.assert_method_called(
+            'cloudify-agent daemon restart --queue=queue',
+            module=daemon,
+            function_name='restart',
+            args=['queue']
+        )
+
     def test_register(self):
         self.assert_method_called(
             'cloudify-agent daemon register --queue=queue --plugin=plugin',
             module=daemon,
             function_name='register',
-            kwargs={
-                'queue': 'queue',
-                'plugin': 'plugin',
-            }
+            args=['queue', 'plugin']
         )

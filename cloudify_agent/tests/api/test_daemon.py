@@ -18,10 +18,11 @@ import logging
 import getpass
 import os
 
+from cloudify.utils import LocalCommandRunner
+from cloudify.celery import celery
+
 from cloudify_agent.api.daemon import Daemon
 from cloudify_agent.api import daemon as daemon_api
-from cloudify.utils import LocalCommandRunner
-
 from cloudify_agent.tests.api import BaseApiTestCase
 
 
@@ -75,15 +76,13 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         super(TestGenericLinuxDaemon, self).setUp()
         self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
         self.runner = LocalCommandRunner(self.logger)
-        self.daemon_names = []
         logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
     def tearDown(self):
         super(TestGenericLinuxDaemon, self).tearDown()
-        if self.daemon_names:
-            for daemon_name in self.daemon_names:
-                self.runner.run('sudo service {0} stop'
-                                .format(daemon_name))
+        pong = celery.control.ping()
+        if pong:
+            self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
 
     def test_create(self):
         daemon = daemon_api.create(
@@ -94,10 +93,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             workdir=self.temp_folder,
             process_management=self.PROCESS_MANAGEMENT
         )
-
-        self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_names.append(daemon.name)
-        self.assertRegisteredTasks(self.queue)
+        self.assertTrue(os.path.exists(daemon.script_path))
+        self.assertTrue(os.path.exists(daemon.config_path))
 
     def test_create_twice(self):
         daemon_api.create(
@@ -183,36 +180,64 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                           process_management=self.PROCESS_MANAGEMENT,
                           basedir=self.temp_folder)
 
-    def test_two_daemons(self):
-        queue1 = '{0}-1'.format(self.queue)
+    def test_start(self):
         daemon = daemon_api.create(
-            queue=queue1,
+            queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder,
             process_management=self.PROCESS_MANAGEMENT
         )
+        daemon_api.start(self.queue)
+        self.assert_daemon_alive(self.queue)
+        self.assert_registered_tasks(daemon.queue)
 
-        self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_names.append(daemon.name)
-        self.assertRegisteredTasks(queue1)
-
-        queue2 = '{0}-2'.format(self.queue)
+    def test_start_twice(self):
         daemon = daemon_api.create(
-            queue=queue2,
+            queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder,
             process_management=self.PROCESS_MANAGEMENT
         )
+        daemon_api.start(self.queue)
+        self.assert_daemon_alive(self.queue)
+        self.assert_registered_tasks(daemon.queue)
+        daemon_api.start(self.queue)
+        self.assert_daemon_alive(self.queue)
+        self.assert_registered_tasks(daemon.queue)
 
-        self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_names.append(daemon.name)
-        self.assertRegisteredTasks(queue2)
+    def test_stop(self):
+        daemon_api.create(
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+        daemon_api.start(self.queue)
+        daemon_api.stop(self.queue)
+        self.assert_daemon_dead(self.queue)
 
-    def test_register(self):
+    def test_stop_twice(self):
+        daemon_api.create(
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+        daemon_api.start(self.queue)
+        daemon_api.stop(self.queue)
+        self.assert_daemon_dead(self.queue)
+        daemon_api.stop(self.queue)
+        self.assert_daemon_dead(self.queue)
+
+    def test_register_before_start(self):
         daemon = daemon_api.create(
             queue=self.queue,
             agent_ip='127.0.0.1',
@@ -228,9 +253,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                         stdout_pipe=False)
         try:
             daemon_api.register(self.queue, 'mock-plugin')
-            self.runner.run('sudo service {0} start'.format(daemon.name))
-            self.daemon_name = daemon.name
-            self.assertRegisteredTasks(
+            daemon_api.start(self.queue)
+            self.assert_registered_tasks(
                 self.queue,
                 additional_tasks=set(['mock_plugin.tasks.run'])
             )
@@ -238,3 +262,86 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
                             .format(daemon.virtualenv_path),
                             stdout_pipe=False)
+
+    def test_register_after_started(self):
+        daemon = daemon_api.create(
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+        from cloudify_agent.tests import resources
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
+                        .format(daemon.virtualenv_path,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        daemon_api.start(self.queue)
+        try:
+            daemon_api.register(self.queue, 'mock-plugin')
+            daemon_api.restart(self.queue)
+            self.assert_registered_tasks(
+                self.queue,
+                additional_tasks=set(['mock_plugin.tasks.run'])
+            )
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
+                            .format(daemon.virtualenv_path),
+                            stdout_pipe=False)
+
+    def test_two_daemons(self):
+        queue1 = '{0}-1'.format(self.queue)
+        daemon_api.create(
+            queue=queue1,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+
+        daemon_api.start(queue1)
+        self.assert_daemon_alive(queue1)
+        self.assert_registered_tasks(queue1)
+
+        queue2 = '{0}-2'.format(self.queue)
+        daemon_api.create(
+            queue=queue2,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+
+        daemon_api.start(queue2)
+        self.assert_daemon_alive(queue2)
+        self.assert_registered_tasks(queue2)
+
+    def test_delete_before_stop(self):
+        daemon_api.create(
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+        daemon_api.start(self.queue)
+        self.assertRaises(RuntimeError, daemon_api.delete)
+
+    def test_delete_after_stop(self):
+        daemon = daemon_api.create(
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+        daemon_api.start(self.queue)
+        daemon_api.stop(self.queue)
+        daemon_api.delete(self.queue)
+        self.assertFalse(os.path.exists(daemon.script_path))
+        self.assertFalse(os.path.exists(daemon.config_path))

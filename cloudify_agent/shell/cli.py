@@ -49,6 +49,10 @@ main.add_command(daemon_sub_command)
 main.add_command(worker)
 
 daemon_sub_command.add_command(daemon.create)
+daemon_sub_command.add_command(daemon.start)
+daemon_sub_command.add_command(daemon.stop)
+daemon_sub_command.add_command(daemon.restart)
+daemon_sub_command.add_command(daemon.delete)
 daemon_sub_command.add_command(daemon.register)
 
 

@@ -34,14 +34,15 @@ class BaseCommandLineTestCase(BaseTestCase):
         sys.argv = command.split()
         cli.main()
 
-    def assert_method_called(self,
-                             cli_command,
-                             module,
-                             function_name,
-                             kwargs):
+    def assert_method_called(self, cli_command, module, function_name,
+                             args=None, kwargs=None):
+        if not kwargs:
+            kwargs = {}
+        if not args:
+            args = []
         with patch.object(module, function_name) as mock:
             try:
                 self._run(cli_command)
             except BaseException as e:
                 self.logger.info(str(e))
-            mock.assert_called_with(**kwargs)
+            mock.assert_called_with(*args, **kwargs)

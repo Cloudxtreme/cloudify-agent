@@ -51,7 +51,7 @@ class BaseApiTestCase(BaseTestCase):
     def setUpClass(cls):
         super(BaseApiTestCase, cls).setUpClass()
 
-    def assertRegisteredTasks(self, queue, additional_tasks=None):
+    def assert_registered_tasks(self, queue, additional_tasks=None):
         # assert tasks are registered as we expect
         if not additional_tasks:
             additional_tasks = set()
@@ -66,3 +66,15 @@ class BaseApiTestCase(BaseTestCase):
         expected_tasks = set(BUILT_IN_TASKS)
         expected_tasks.update(additional_tasks)
         self.assertEqual(expected_tasks, daemon_tasks)
+
+    def assert_daemon_alive(self, queue):
+        destination = 'celery.{0}'.format(queue)
+        inspect = celery.control.inspect(destination=[destination])
+        stats = (inspect.stats() or {}).get(destination)
+        self.assertIsNotNone(stats)
+
+    def assert_daemon_dead(self, queue):
+        destination = 'celery.{0}'.format(queue)
+        inspect = celery.control.inspect(destination=[destination])
+        stats = (inspect.stats() or {}).get(destination)
+        self.assertIsNone(stats)

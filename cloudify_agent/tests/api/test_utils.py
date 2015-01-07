@@ -46,6 +46,7 @@ class TestUtils(BaseApiTestCase):
     def test_dump_daemon_context(self):
         dumped_context = {'a': 'value_a'}
         dump_daemon_context('test_queue', context=dumped_context)
-        context_path = os.path.join(os.getcwd(), 'test_queue.json')
+        context_path = os.path.join(os.getcwd(), '.cloudify-agent',
+                                    'test_queue.json')
         loaded_context = json.load(open(context_path))
         self.assertEqual(dumped_context, loaded_context)

@@ -26,6 +26,7 @@ from cloudify.utils import LocalCommandRunner
 import cloudify_agent
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
+from cloudify.celery import celery
 
 
 LOGGER_NAME = 'cloudify.agent.api.daemon'
@@ -53,12 +54,49 @@ def create(queue, agent_ip, manager_ip, user, process_management,
     return daemon
 
 
+def start(queue):
+    context = utils.load_daemon_context(queue)
+    daemon = HANDLERS[context['process_management']](
+        queue=queue
+    )
+    daemon.start()
+    return daemon
+
+
+def stop(queue):
+    context = utils.load_daemon_context(queue)
+    daemon = HANDLERS[context['process_management']](
+        queue=queue
+    )
+    daemon.stop()
+    return daemon
+
+
+def delete(queue):
+    context = utils.load_daemon_context(queue)
+    daemon = HANDLERS[context['process_management']](
+        queue=queue
+    )
+    daemon.delete()
+    return daemon
+
+
 def register(queue, plugin):
     context = utils.load_daemon_context(queue)
     daemon = HANDLERS[context['process_management']](
         queue=queue
     )
     daemon.register(plugin)
+    return daemon
+
+
+def restart(queue):
+    context = utils.load_daemon_context(queue)
+    daemon = HANDLERS[context['process_management']](
+        queue=queue
+    )
+    daemon.restart()
+    return daemon
 
 
 class Daemon(object):
@@ -85,10 +123,19 @@ class Daemon(object):
     def create(self, agent_ip, manager_ip, user):
         raise NotImplementedError('Must be implemented by subclass')
 
+    def start(self):
+        raise NotImplementedError('Must be implemented by subclass')
+
     def register(self, plugin):
         raise NotImplementedError('Must be implemented by subclass')
 
+    def stop(self):
+        raise NotImplementedError('Must be implemented by subclass')
+
     def delete(self):
+        raise NotImplementedError('Must be implemented by subclass')
+
+    def restart(self):
         raise NotImplementedError('Must be implemented by subclass')
 
     @staticmethod
@@ -132,6 +179,9 @@ class GenericLinuxDaemon(Daemon):
                             manager_ip=manager_ip,
                             user=user)
 
+    def start(self):
+        self._run('sudo service {0} start'.format(self.name))
+
     def register(self, plugin):
         plugin_paths = self._extract_module_paths_from_name(
             self.virtualenv_path, plugin
@@ -151,6 +201,19 @@ class GenericLinuxDaemon(Daemon):
                   .format(self.includes_file_path))
         self._run('sudo cp {0} {1}'
                   .format(temp_includes, self.includes_file_path))
+
+    def stop(self):
+        self._run('sudo service {0} stop'.format(self.name))
+
+    def delete(self):
+        self._validate_delete()
+        self._run('sudo rm {0}'.format(self.script_path))
+        self._run('sudo rm {0}'.format(self.config_path))
+        self._run('sudo rm -rf {0}'.format(self.workdir))
+
+    def restart(self):
+        self.stop()
+        self.start()
 
     def _run(self, command):
 
@@ -209,6 +272,19 @@ class GenericLinuxDaemon(Daemon):
         if os.path.exists(self.includes_file_path):
             raise RuntimeError('Cannot create daemon {0}. {1} already exists.'
                                .format(self.name, self.includes_file_path))
+
+    def _validate_delete(self):
+
+        """
+        Validate we can delete this daemon files.
+        """
+        destination = 'celery.{0}'.format(self.queue)
+        inspect = celery.control.inspect(destination=[destination])
+        stats = (inspect.stats() or {}).get(destination)
+        if stats:
+            raise RuntimeError('Cannot delete daemon {0}. '
+                               'Process still running'
+                               .format(self.name))
 
     def _create_script(self):
 
