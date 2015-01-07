@@ -92,8 +92,9 @@ class GenericLinuxDaemon(Daemon):
         self.script_path = os.path.join(self.SCRIPT_DIR, self.name)
         self.config_path = os.path.join(self.CONFIG_DIR, self.name)
         self.virtualenv_path = os.path.dirname(os.path.dirname(sys.executable))
-        self.includes_file_path = os.path.join(self.CONFIG_DIR,
-                                               '{0}-includes'.format(self.name))
+        self.includes_file_path = os.path.join(
+            self.CONFIG_DIR,
+            '{0}-includes'.format(self.name))
 
     def _run(self, command):
         runner = LocalCommandRunner(logger=self.logger)
@@ -113,12 +114,16 @@ class GenericLinuxDaemon(Daemon):
         with open(temp_includes, 'w') as f:
             includes = []
             for plugin in included_plugins:
-                includes.extend(utils.extract_module_paths_from_name(self.virtualenv_path,
-                                                                     plugin))
+                includes.extend(
+                    utils.extract_module_paths_from_name(
+                        self.virtualenv_path, plugin
+                    )
+                )
             f.write(','.join(includes))
 
         # now move it using sudo
-        self._run('sudo cp {0} {1}'.format(temp_includes, self.includes_file_path))
+        self._run('sudo cp {0} {1}'.format(temp_includes,
+                                           self.includes_file_path))
 
     def _validate_create(self):
 
@@ -147,14 +152,16 @@ class GenericLinuxDaemon(Daemon):
                             user=user)
 
     def register(self, plugin):
-        plugin_paths = utils.extract_module_paths_from_name(self.virtualenv_path,
-                                                            plugin)
+        plugin_paths = utils.extract_module_paths_from_name(
+            self.virtualenv_path, plugin
+        )
         # the includes file is in a restricted directory
         # must use sudo to read it.
         response = self._run('sudo cat {0}'.format(self.includes_file_path))
         includes = response.std_out
         new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
-        self.logger.debug('Adding operations from modules: {0}'.format(plugin_paths))
+        self.logger.debug('Adding operations from modules: {0}'
+                          .format(plugin_paths))
 
         # first write the content to a temp file
         temp_includes = tempfile.mkstemp()[1]
@@ -163,7 +170,8 @@ class GenericLinuxDaemon(Daemon):
 
         # now move it using sudo
         self._run('sudo rm {0}'.format(self.includes_file_path))
-        self._run('sudo cp {0} {1}'.format(temp_includes, self.includes_file_path))
+        self._run('sudo cp {0} {1}'
+                  .format(temp_includes, self.includes_file_path))
 
     def _create_script(self):
         celeryd = pkg_resources.resource_string(

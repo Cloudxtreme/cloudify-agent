@@ -31,7 +31,8 @@ class TestGenericLinuxDaemon(BaseCommandLineTestCase):
 
     def test_create(self):
         self.assert_method_called(
-            'cloudify-agent daemon create --queue=queue --agent-ip=127.0.0.1 --manager-ip=127.0.0.1 --user=elip',
+            'cloudify-agent daemon create --queue=queue --agent-ip=127.0.0.1 '
+            '--manager-ip=127.0.0.1 --user=elip',
             module=daemon,
             function_name='create',
             kwargs={

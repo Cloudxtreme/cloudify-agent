@@ -46,7 +46,8 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_DAEMON_BASEDIR),
               envvar=env.CLOUDIFY_DAEMON_BASEDIR)
 @click.option('--broker-ip', '-bi',
-              help='The broker ip to connect to. If not specified, the --manager_ip '
+              help='The broker ip to connect to. '
+                   'If not specified, the --manager_ip '
                    'option will be used. [{0}]'
                    .format(env.CLOUDIFY_BROKER_IP),
               envvar=env.CLOUDIFY_BROKER_IP)
@@ -59,7 +60,8 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_MANAGER_PORT),
               envvar=env.CLOUDIFY_MANAGER_PORT)
 @click.option('--autoscale', '-as',
-              help='Autoscale parameters in the form of <minimum,maximum> (e.g 2,5). [{0}]'
+              help='Autoscale parameters in the form of '
+                   '<minimum,maximum> (e.g 2,5). [{0}]'
                    .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
               envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
 def create(queue,
@@ -88,7 +90,8 @@ def create(queue,
 
 @click.command()
 @click.option('--queue', '-q',
-              help='The queue of the worker for whom to register the plugin. [{0}]'
+              help='The queue of the worker for whom to '
+                   'register the plugin. [{0}]'
                    .format(env.CLOUDIFY_DAEMON_QUEUE),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_QUEUE)

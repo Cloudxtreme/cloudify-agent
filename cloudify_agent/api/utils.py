@@ -29,4 +29,3 @@ def extract_module_paths_from_name(virtualenv_path, plugin_name):
             module_paths.append(module.replace('../', '')
                                 .replace('/', '.').replace('.py', '').strip())
     return module_paths
-

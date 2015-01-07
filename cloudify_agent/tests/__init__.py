@@ -67,4 +67,3 @@ class BaseTestCase(testtools.TestCase):
         expected_tasks = set(BUILT_IN_TASKS)
         expected_tasks.update(additional_tasks)
         self.assertEqual(expected_tasks, daemon_tasks)
-

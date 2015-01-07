@@ -41,5 +41,3 @@ class BaseCommandLineTestCase(BaseTestCase):
             except BaseException as e:
                 self.logger.info(str(e))
             mock.assert_called_with(**kwargs)
-
-

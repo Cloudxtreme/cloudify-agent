@@ -69,7 +69,8 @@ class TestGenericLinuxDaemon(BaseTestCase):
     def tearDown(self):
         super(TestGenericLinuxDaemon, self).tearDown()
         if self.daemon_name:
-            self.runner.run('sudo service cloudify-agent-{0} stop'.format(self.queue))
+            self.runner.run('sudo service cloudify-agent-{0} stop'
+                            .format(self.queue))
 
     def test_create(self):
         daemon = daemon_api.create(
