@@ -32,14 +32,14 @@ class TestGenericLinuxDaemon(BaseCommandLineTestCase):
     def test_create(self):
         self.assert_method_called(
             'cloudify-agent daemon create --queue=queue --agent-ip=127.0.0.1 '
-            '--manager-ip=127.0.0.1 --user=elip',
+            '--manager-ip=127.0.0.1 --user={0}'.format(self.username),
             module=daemon,
             function_name='create',
             kwargs={
                 'queue': 'queue',
                 'agent_ip': '127.0.0.1',
                 'manager_ip': '127.0.0.1',
-                'user': 'elip',
+                'user': self.username,
                 'basedir': None,
                 'broker_ip': None,
                 'broker_port': None,

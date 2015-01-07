@@ -15,6 +15,7 @@
 
 import testtools
 import logging
+import getpass
 
 from cloudify.celery import celery
 from cloudify.utils import setup_default_logger
@@ -51,6 +52,7 @@ class BaseTestCase(testtools.TestCase):
         cls.logger = setup_default_logger(
             'cloudify.agent.tests',
             level=logging.DEBUG)
+        cls.username = getpass.getuser()
 
     def assertRegisteredTasks(self, queue, additional_tasks=None):
         # assert tasks are registered as we expect

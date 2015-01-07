@@ -77,7 +77,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
 
@@ -90,14 +90,14 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
                           ip='127.0.0.1',
                           manager_ip='127.0.0.1',
-                          user='elip',
+                          user=self.username,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_script_path_exists(self):
@@ -105,7 +105,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
 
@@ -118,7 +118,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
                           queue=self.queue,
                           ip='127.0.0.1',
                           manager_ip='127.0.0.1',
-                          user='elip',
+                          user=self.username,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_config_path_exists(self):
@@ -126,7 +126,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
 
@@ -138,7 +138,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
                           queue=self.queue,
                           ip='127.0.0.1',
                           manager_ip='127.0.0.1',
-                          user='elip',
+                          user=self.username,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_includes_path_exists(self):
@@ -146,7 +146,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
 
@@ -158,7 +158,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
                           queue=self.queue,
                           ip='127.0.0.1',
                           manager_ip='127.0.0.1',
-                          user='elip',
+                          user=self.username,
                           basedir=self.temp_folder)
 
     def test_register(self):
@@ -166,7 +166,7 @@ class TestGenericLinuxDaemon(BaseTestCase):
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
-            user='elip',
+            user=self.username,
             basedir=self.temp_folder
         )
         from cloudify_agent.tests import resources
