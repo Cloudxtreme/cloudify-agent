@@ -65,7 +65,8 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
               envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
 @click.option('--process-management',
-              help='The process management system to use when creating the daemon. [{0}]'
+              help='The process management system to use '
+                   'when creating the daemon. [{0}]'
                    .format(env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT),
               type=click.Choice(['init.d']),
               default='init.d',

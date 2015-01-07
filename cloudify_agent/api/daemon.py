@@ -34,7 +34,8 @@ logger = setup_default_logger(LOGGER_NAME,
                               level=logging.INFO)
 
 
-def create(queue, agent_ip, manager_ip, user, process_management, **optional_parameters):
+def create(queue, agent_ip, manager_ip, user, process_management,
+           **optional_parameters):
 
     daemon = HANDLERS[process_management](
         queue=queue,
@@ -101,8 +102,9 @@ class Daemon(object):
         for module in files:
             if module.endswith('.py') and '__init__' not in module:
                 # the files paths are relative to the package __init__.py file.
-                module_paths.append(module.replace('../', '')
-                                    .replace('/', '.').replace('.py', '').strip())
+                module_paths.append(
+                    module.replace('../', '')
+                    .replace('/', '.').replace('.py', '').strip())
         return module_paths
 
 
@@ -228,7 +230,8 @@ class GenericLinuxDaemon(Daemon):
     def _create_config(self, agent_ip, manager_ip, user):
 
         """
-        Creates the daemon configuration file. Will be placed under /etc/default
+        Creates the daemon configuration file.
+        Will be placed under /etc/default
         Uses the template 'resources/celeryd.conf.template'.
 
         :param agent_ip: The agent ip.

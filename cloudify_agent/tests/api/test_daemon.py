@@ -67,8 +67,9 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                 'Error! These tests require sudo '
                 'permissions and may manipulate system wide files. '
                 'Therefore they are only executed on the travis CI system. '
-                'If you are ABSOLUTELY sure you wish to run them on your local box, '
-                'set the FORCE_TESTS environment variable to bypass this restriction.')
+                'If you are ABSOLUTELY sure you wish to '
+                'run them on your local box, set the FORCE_TESTS '
+                'environment variable to bypass this restriction.')
 
     def setUp(self):
         super(TestGenericLinuxDaemon, self).setUp()
