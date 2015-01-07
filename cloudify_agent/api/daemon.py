@@ -14,7 +14,6 @@
 #  * limitations under the License.
 
 import pkg_resources
-import tempfile
 import os
 import sys
 import logging
@@ -162,7 +161,7 @@ class GenericLinuxDaemon(Daemon):
         self.config_path = os.path.join(self.CONFIG_DIR, self.name)
         self.virtualenv_path = os.path.dirname(os.path.dirname(sys.executable))
         self.includes_file_path = os.path.join(
-            self.CONFIG_DIR,
+            self.workdir,
             '{0}-includes'.format(self.name))
 
     def create(self, agent_ip, manager_ip, user):
@@ -182,20 +181,18 @@ class GenericLinuxDaemon(Daemon):
             self.virtualenv_path, plugin
         )
 
-        includes = self._run('sudo cat {0}'
-                             .format(self.includes_file_path)).std_out
+        with open(self.includes_file_path) as include_file:
+            includes = include_file.read()
+
         new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
         self.logger.debug('Adding operations from modules: {0}'
                           .format(plugin_paths))
 
-        temp_includes = tempfile.mkstemp()[1]
-        with open(temp_includes, 'w') as f:
-            f.write(new_includes)
+        if os.path.exists(self.includes_file_path):
+            os.remove(self.includes_file_path)
 
-        self._run('sudo rm {0}'
-                  .format(self.includes_file_path))
-        self._run('sudo cp {0} {1}'
-                  .format(temp_includes, self.includes_file_path))
+        with open(self.includes_file_path, 'w') as f:
+            f.write(new_includes)
 
     def stop(self):
         self._run('sudo service {0} stop'.format(self.name))
@@ -229,8 +226,9 @@ class GenericLinuxDaemon(Daemon):
 
         """
 
-        temp_includes = tempfile.mkstemp()[1]
-        with open(temp_includes, 'w') as f:
+        if not os.path.exists(os.path.dirname(self.includes_file_path)):
+            os.makedirs(os.path.dirname(self.includes_file_path))
+        with open(self.includes_file_path, 'w') as f:
             includes = []
             for plugin in included_plugins:
                 includes.extend(
@@ -238,10 +236,9 @@ class GenericLinuxDaemon(Daemon):
                         self.virtualenv_path, plugin
                     )
                 )
+            self.logger.debug('Creating includes file at: {0}'
+                              .format(self.includes_file_path))
             f.write(','.join(includes))
-
-        self._run('sudo cp {0} {1}'.format(temp_includes,
-                                           self.includes_file_path))
 
     def _create_context(self):
         utils.dump_daemon_context(

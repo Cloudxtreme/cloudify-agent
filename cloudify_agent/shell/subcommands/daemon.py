@@ -92,7 +92,7 @@ def create(queue,
         user=user,
         **optional_parameters
     )
-    click.secho('Successfully created daemon with queue {0}'.format(queue),
+    click.secho('Successfully created daemon with queue: {0}'.format(queue),
                 fg='green')
 
 
@@ -116,7 +116,7 @@ def register(queue, plugin):
 
     click.echo('Registering...')
     daemon_api.register(queue, plugin)
-    click.secho('Successfully registered {0} to daemon with queue {1}'
+    click.secho('Successfully registered {0} to daemon with queue: {1}'
                 .format(plugin, queue),
                 fg='green')
 
@@ -136,7 +136,7 @@ def start(queue):
 
     click.echo('Starting...')
     daemon_api.start(queue)
-    click.secho('Successfully started daemon with queue {0}'
+    click.secho('Successfully started daemon with queue: {0}'
                 .format(queue), fg='green')
 
 
@@ -155,7 +155,7 @@ def stop(queue):
 
     click.echo('Stopping...')
     daemon_api.stop(queue)
-    click.secho('Successfully stopped daemon with queue {0}'
+    click.secho('Successfully stopped daemon with queue: {0}'
                 .format(queue), fg='green')
 
 
@@ -174,7 +174,7 @@ def restart(queue):
 
     click.echo('Restarting...')
     daemon_api.restart(queue)
-    click.secho('Successfully restarted daemon with queue {0}'
+    click.secho('Successfully restarted daemon with queue: {0}'
                 .format(queue), fg='green')
 
 
@@ -193,5 +193,5 @@ def delete(queue):
 
     click.echo('Deleting...')
     daemon_api.delete(queue)
-    click.secho('Successfully deleted daemon with queue {0}'
+    click.secho('Successfully deleted daemon with queue: {0}'
                 .format(queue), fg='green')
