@@ -18,7 +18,7 @@ import tempfile
 import os
 import sys
 import logging
-from jinja2 import Template
+
 
 import cloudify_agent
 from cloudify.utils import setup_default_logger
@@ -98,7 +98,43 @@ class GenericLinuxDaemon(Daemon):
             self.CONFIG_DIR,
             '{0}-includes'.format(self.name))
 
+    def create(self, agent_ip, manager_ip, user):
+        self._validate_create()
+        self._create_includes_file()
+        self._create_script()
+        self._create_config(agent_ip=agent_ip,
+                            manager_ip=manager_ip,
+                            user=user)
+
+    def register(self, plugin):
+        plugin_paths = utils.extract_module_paths_from_name(
+            self.virtualenv_path, plugin
+        )
+
+        includes = self._run('sudo cat {0}'
+                             .format(self.includes_file_path)).std_out
+        new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
+        self.logger.debug('Adding operations from modules: {0}'
+                          .format(plugin_paths))
+
+        temp_includes = tempfile.mkstemp()[1]
+        with open(temp_includes, 'w') as f:
+            f.write(new_includes)
+
+        self._run('sudo rm {0}'
+                  .format(self.includes_file_path))
+        self._run('sudo cp {0} {1}'
+                  .format(temp_includes, self.includes_file_path))
+
     def _run(self, command):
+
+        """
+        Runts the given command and uses the current logger
+        for output.
+
+        :param command: The command to run.
+        :return:
+        """
         runner = LocalCommandRunner(logger=self.logger)
         return runner.run(command)
 
@@ -108,10 +144,8 @@ class GenericLinuxDaemon(Daemon):
         Creates an includes file which contains the modules
         of the built-in plugins. These modules will imported and registered.
 
-        :return: The path to the file.
         """
 
-        # first write the content to a temp file
         temp_includes = tempfile.mkstemp()[1]
         with open(temp_includes, 'w') as f:
             includes = []
@@ -123,11 +157,16 @@ class GenericLinuxDaemon(Daemon):
                 )
             f.write(','.join(includes))
 
-        # now move it using sudo
         self._run('sudo cp {0} {1}'.format(temp_includes,
                                            self.includes_file_path))
 
     def _validate_create(self):
+
+        """
+        Validates that creation operation will be successful.
+
+        :raises: RuntimeError
+        """
 
         # currently no support for re-configuring existing daemons.
         # maybe in the future we can do 'reconfigure' and notify the
@@ -145,53 +184,34 @@ class GenericLinuxDaemon(Daemon):
             raise RuntimeError('Cannot create daemon {0}. {1} already exists.'
                                .format(self.name, self.includes_file_path))
 
-    def create(self, agent_ip, manager_ip, user):
-        self._validate_create()
-        self._create_includes_file()
-        self._create_script()
-        self._create_config(agent_ip=agent_ip,
-                            manager_ip=manager_ip,
-                            user=user)
-
-    def register(self, plugin):
-        plugin_paths = utils.extract_module_paths_from_name(
-            self.virtualenv_path, plugin
-        )
-        # the includes file is in a restricted directory
-        # must use sudo to read it.
-        response = self._run('sudo cat {0}'.format(self.includes_file_path))
-        includes = response.std_out
-        new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
-        self.logger.debug('Adding operations from modules: {0}'
-                          .format(plugin_paths))
-
-        # first write the content to a temp file
-        temp_includes = tempfile.mkstemp()[1]
-        with open(temp_includes, 'w') as f:
-            f.write(new_includes)
-
-        # now move it using sudo
-        self._run('sudo rm {0}'.format(self.includes_file_path))
-        self._run('sudo cp {0} {1}'
-                  .format(temp_includes, self.includes_file_path))
-
     def _create_script(self):
+
+        """
+        Creates the daemon init script to be placed under /etc/init.d
+        Uses the template 'resources/celeryd.template'.
+
+        """
         celeryd = pkg_resources.resource_string(
             cloudify_agent.__name__,
             'resources/celeryd.template')
-        template = Template(celeryd)
-        rendered = template.render(daemon_name=self.name)
-        temp = tempfile.mkstemp(prefix=self.name,
-                                text=True)
-        with open(temp[1], 'w') as f:
-            f.write(rendered)
-            f.write(os.linesep)
 
-        # place the init script under the /etc/init.d directory.
-        self._run('sudo cp {0} {1}'.format(temp[1], self.script_path))
+        rendered = utils.render_template(celeryd,
+                                         daemon_name=self.name)
+
+        self._run('sudo cp {0} {1}'.format(rendered, self.script_path))
         self._run('sudo chmod +x {0}'.format(self.script_path))
 
     def _create_config(self, agent_ip, manager_ip, user):
+
+        """
+        Creates the daemon configuration file. Will be placed under /etc/default
+        Uses the template 'resources/celeryd.conf.template'.
+
+        :param agent_ip: The agent ip.
+        :param manager_ip: The manager ip.
+        :param user: The user.
+        :return:
+        """
 
         broker_ip = self.optional_parameters.get('broker_ip') or manager_ip
 
@@ -202,8 +222,8 @@ class GenericLinuxDaemon(Daemon):
         celeryd_conf = pkg_resources.resource_string(
             cloudify_agent.__name__,
             'resources/celeryd.conf.template')
-        template = Template(celeryd_conf)
-        rendered = template.render(
+        rendered = utils.render_template(
+            celeryd_conf,
             queue=self.queue,
             work_dir=self.work_dir,
             manager_ip=manager_ip,
@@ -214,12 +234,7 @@ class GenericLinuxDaemon(Daemon):
             user=user,
             autoscale=self.autoscale,
             includes_file_path=self.includes_file_path,
-            virtualenv_path=self.virtualenv_path)
-        temp = tempfile.mkstemp(prefix=self.name,
-                                text=True)
-        with open(temp[1], 'w') as f:
-            f.write(rendered)
-            f.write(os.linesep)
+            virtualenv_path=self.virtualenv_path
+        )
 
-        # place the config file under the /etc/default directory.
-        self._run('sudo cp {0} {1}'.format(temp[1], self.config_path))
+        self._run('sudo cp {0} {1}'.format(rendered, self.config_path))

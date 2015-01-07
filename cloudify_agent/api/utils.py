@@ -13,6 +13,10 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import os
+import tempfile
+from jinja2 import Template
+
 from cloudify.utils import LocalCommandRunner
 
 
@@ -29,3 +33,13 @@ def extract_module_paths_from_name(virtualenv_path, plugin_name):
             module_paths.append(module.replace('../', '')
                                 .replace('/', '.').replace('.py', '').strip())
     return module_paths
+
+
+def render_template(template, **values):
+    template = Template(template)
+    rendered = template.render(**values)
+    temp = tempfile.mkstemp()
+    with open(temp[1], 'w') as f:
+        f.write(rendered)
+        f.write(os.linesep)
+        return f.name
