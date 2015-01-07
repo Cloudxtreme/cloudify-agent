@@ -13,24 +13,9 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import getpass
-import os
-
 from cloudify.celery import celery
 
 from cloudify_agent.tests import BaseTestCase
-
-
-username = getpass.getuser()
-
-if 'TRAVIS_BUILD_DIR' not in os.environ \
-        and 'FORCE_TESTS' not in os.environ:
-    raise RuntimeError(
-        'Error! These tests require sudo '
-        'permissions and may manipulate system wide files. '
-        'Therefore they are only executed on the travis CI system. '
-        'If you are ABSOLUTELY sure you wish to run them on your local box, '
-        'set the FORCE_TESTS environment variable to bypass this restriction.')
 
 
 BUILT_IN_TASKS = [
@@ -58,6 +43,13 @@ BUILT_IN_TASKS = [
 
 
 class BaseApiTestCase(BaseTestCase):
+
+    def setUp(self):
+        super(BaseApiTestCase, self).setUp()
+
+    @classmethod
+    def setUpClass(cls):
+        super(BaseApiTestCase, cls).setUpClass()
 
     def assertRegisteredTasks(self, queue, additional_tasks=None):
         # assert tasks are registered as we expect

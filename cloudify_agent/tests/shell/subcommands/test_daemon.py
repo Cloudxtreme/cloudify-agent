@@ -13,9 +13,6 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-
-import tempfile
-
 from cloudify_agent.api import daemon
 from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
@@ -23,11 +20,6 @@ from cloudify_agent.tests.shell import BaseCommandLineTestCase
 class TestGenericLinuxDaemonCommandLine(BaseCommandLineTestCase):
 
     PROCESS_MANAGEMENT = 'init.d'
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestGenericLinuxDaemonCommandLine, cls).setUpClass()
-        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-daemon-cli-tests-')
 
     def test_create(self):
         self.assert_method_called(
@@ -40,7 +32,8 @@ class TestGenericLinuxDaemonCommandLine(BaseCommandLineTestCase):
                 'agent_ip': '127.0.0.1',
                 'manager_ip': '127.0.0.1',
                 'user': self.username,
-                'basedir': None,
+                'process_management': 'init.d',
+                'workdir': None,
                 'broker_ip': None,
                 'broker_port': None,
                 'manager_port': None,

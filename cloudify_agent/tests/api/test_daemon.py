@@ -13,16 +13,19 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import tempfile
-import os
 import uuid
 import logging
+import getpass
+import os
 
 from cloudify_agent.api.daemon import Daemon
 from cloudify_agent.api import daemon as daemon_api
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.tests.api import BaseApiTestCase
+
+
+username = getpass.getuser()
 
 
 class TestDaemonDefaults(BaseApiTestCase):
@@ -32,15 +35,14 @@ class TestDaemonDefaults(BaseApiTestCase):
     initialization parameters.
     """
 
-    @classmethod
-    def setUpClass(cls):
-
-        cls.daemon = Daemon(
+    def setUp(self):
+        super(TestDaemonDefaults, self).setUp()
+        self.daemon = Daemon(
             queue='test_queue'
         )
 
     def test_default_basedir(self):
-        self.assertEqual(os.getcwd(), self.daemon.basedir)
+        self.assertEqual(os.getcwd(), self.daemon.workdir)
 
     def test_default_broker_port(self):
         self.assertEqual(5672, self.daemon.broker_port)
@@ -54,23 +56,33 @@ class TestDaemonDefaults(BaseApiTestCase):
 
 class TestGenericLinuxDaemon(BaseApiTestCase):
 
-    """
-    Tests the functionality of the GenericLinuxDaemon.
-    """
+    PROCESS_MANAGEMENT = 'init.d'
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestGenericLinuxDaemon, cls).setUpClass()
+        if 'TRAVIS_BUILD_DIR' not in os.environ \
+                and 'FORCE_TESTS' not in os.environ:
+            raise RuntimeError(
+                'Error! These tests require sudo '
+                'permissions and may manipulate system wide files. '
+                'Therefore they are only executed on the travis CI system. '
+                'If you are ABSOLUTELY sure you wish to run them on your local box, '
+                'set the FORCE_TESTS environment variable to bypass this restriction.')
 
     def setUp(self):
         super(TestGenericLinuxDaemon, self).setUp()
-        self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-api-tests-')
         self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
         self.runner = LocalCommandRunner(self.logger)
-        self.daemon_name = None
+        self.daemon_names = []
         logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
     def tearDown(self):
         super(TestGenericLinuxDaemon, self).tearDown()
-        if self.daemon_name:
-            self.runner.run('sudo service cloudify-agent-{0} stop'
-                            .format(self.queue))
+        if self.daemon_names:
+            for daemon_name in self.daemon_names:
+                self.runner.run('sudo service {0} stop'
+                                .format(daemon_name))
 
     def test_create(self):
         daemon = daemon_api.create(
@@ -78,11 +90,12 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
 
         self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_name = daemon.name
+        self.daemon_names.append(daemon.name)
         self.assertRegisteredTasks(self.queue)
 
     def test_create_twice(self):
@@ -91,13 +104,15 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
         self.assertRaises(RuntimeError, daemon_api.create,
                           queue=self.queue,
                           agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
+                          process_management=self.PROCESS_MANAGEMENT,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_script_path_exists(self):
@@ -106,7 +121,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
 
         # delete includes and config files
@@ -119,6 +135,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                           agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
+                          process_management=self.PROCESS_MANAGEMENT,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_config_path_exists(self):
@@ -127,7 +144,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
 
         # delete includes and script files
@@ -139,6 +157,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                           agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
+                          process_management=self.PROCESS_MANAGEMENT,
                           basedir=self.temp_folder)
 
     def test_create_twice_only_includes_path_exists(self):
@@ -147,7 +166,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
 
         # delete config and script files
@@ -159,7 +179,37 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                           agent_ip='127.0.0.1',
                           manager_ip='127.0.0.1',
                           user=self.username,
+                          process_management=self.PROCESS_MANAGEMENT,
                           basedir=self.temp_folder)
+
+    def test_two_daemons(self):
+        queue1 = '{0}-1'.format(self.queue)
+        daemon = daemon_api.create(
+            queue=queue1,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+
+        self.runner.run('sudo service {0} start'.format(daemon.name))
+        self.daemon_names.append(daemon.name)
+        self.assertRegisteredTasks(queue1)
+
+        queue2 = '{0}-2'.format(self.queue)
+        daemon = daemon_api.create(
+            queue=queue2,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
+        )
+
+        self.runner.run('sudo service {0} start'.format(daemon.name))
+        self.daemon_names.append(daemon.name)
+        self.assertRegisteredTasks(queue2)
 
     def test_register(self):
         daemon = daemon_api.create(
@@ -167,7 +217,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            basedir=self.temp_folder
+            workdir=self.temp_folder,
+            process_management=self.PROCESS_MANAGEMENT
         )
         from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'

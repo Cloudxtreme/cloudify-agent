@@ -16,15 +16,29 @@
 import testtools
 import logging
 import getpass
+import tempfile
+import os
 
 from cloudify.utils import setup_default_logger
 
 
 class BaseTestCase(testtools.TestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        cls.logger = setup_default_logger(
+    def setUp(self):
+        super(BaseTestCase, self).setUp()
+        self.logger = setup_default_logger(
             'cloudify.agent.tests',
             level=logging.DEBUG)
-        cls.username = getpass.getuser()
+        self.username = getpass.getuser()
+        self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
+        self.temp_file = tempfile.mkstemp(prefix='cloudify-agent-tests-')
+        self.currdir = os.getcwd()
+        os.chdir(self.temp_folder)
+
+    def tearDown(self):
+        super(BaseTestCase, self).tearDown()
+        os.chdir(self.currdir)
+
+    @classmethod
+    def setUpClass(cls):
+        super(BaseTestCase, cls).setUpClass()

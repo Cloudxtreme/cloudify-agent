@@ -23,6 +23,9 @@ from cloudify_agent.tests import BaseTestCase
 
 class BaseCommandLineTestCase(BaseTestCase):
 
+    def setUp(self):
+        super(BaseCommandLineTestCase, self).setUp()
+
     @classmethod
     def setUpClass(cls):
         super(BaseCommandLineTestCase, cls).setUpClass()

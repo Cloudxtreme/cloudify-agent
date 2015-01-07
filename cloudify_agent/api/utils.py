@@ -15,24 +15,8 @@
 
 import os
 import tempfile
+import json
 from jinja2 import Template
-
-from cloudify.utils import LocalCommandRunner
-
-
-def extract_module_paths_from_name(virtualenv_path, plugin_name):
-    module_paths = []
-    runner = LocalCommandRunner()
-    files = runner.run(
-        '{0}/bin/pip show -f {1}'
-        .format(virtualenv_path, plugin_name)
-    ).std_out.splitlines()
-    for module in files:
-        if module.endswith('.py') and '__init__' not in module:
-            # the files paths are relative to the package __init__.py file.
-            module_paths.append(module.replace('../', '')
-                                .replace('/', '.').replace('.py', '').strip())
-    return module_paths
 
 
 def render_template(template, **values):
@@ -43,3 +27,22 @@ def render_template(template, **values):
         f.write(rendered)
         f.write(os.linesep)
         return f.name
+
+
+def load_daemon_context(queue):
+    context_path = os.path.join(os.getcwd(),
+                                '{0}.json'.format(queue))
+    if not os.path.exists(context_path):
+        raise RuntimeError('Cannot load daemon context: {0} does not exists. '
+                           'Are you sure you are in the correct directory?'
+                           .format(queue))
+    return json.load(open(context_path))
+
+
+def dump_daemon_context(queue, context):
+
+    context_path = os.path.join(os.getcwd(),
+                                '{0}.json'.format(queue))
+
+    with open(context_path, 'w') as outfile:
+        json.dump(context, outfile)

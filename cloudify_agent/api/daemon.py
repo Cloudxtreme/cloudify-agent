@@ -20,9 +20,10 @@ import sys
 import logging
 
 
-import cloudify_agent
 from cloudify.utils import setup_default_logger
 from cloudify.utils import LocalCommandRunner
+
+import cloudify_agent
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
 
@@ -33,19 +34,27 @@ logger = setup_default_logger(LOGGER_NAME,
                               level=logging.INFO)
 
 
-def create(queue, agent_ip, manager_ip, user, **optional_parameters):
-    daemon = GenericLinuxDaemon(
+def create(queue, agent_ip, manager_ip, user, process_management, **optional_parameters):
+
+    daemon = HANDLERS[process_management](
         queue=queue,
         **optional_parameters
     )
     daemon.create(agent_ip=agent_ip,
                   manager_ip=manager_ip,
                   user=user)
+    utils.dump_daemon_context(
+        queue,
+        context={
+            'process_management': process_management
+        }
+    )
     return daemon
 
 
 def register(queue, plugin):
-    daemon = GenericLinuxDaemon(
+    context = utils.load_daemon_context(queue)
+    daemon = HANDLERS[context['process_management']](
         queue=queue
     )
     daemon.register(plugin)
@@ -61,7 +70,7 @@ class Daemon(object):
         self.queue = queue
 
         # optional parameters with default values
-        self.basedir = optional_parameters.get('basedir') or os.getcwd()
+        self.workdir = optional_parameters.get('workdir') or os.getcwd()
         self.broker_port = optional_parameters.get('broker_port') or 5672
         self.manager_port = optional_parameters.get('manager_port') or 80
         self.autoscale = optional_parameters.get('autoscale') or '0,5'
@@ -80,6 +89,21 @@ class Daemon(object):
 
     def delete(self):
         raise NotImplementedError('Must be implemented by subclass')
+
+    @staticmethod
+    def _extract_module_paths_from_name(virtualenv_path, plugin_name):
+        module_paths = []
+        runner = LocalCommandRunner()
+        files = runner.run(
+            '{0}/bin/pip show -f {1}'
+            .format(virtualenv_path, plugin_name)
+        ).std_out.splitlines()
+        for module in files:
+            if module.endswith('.py') and '__init__' not in module:
+                # the files paths are relative to the package __init__.py file.
+                module_paths.append(module.replace('../', '')
+                                    .replace('/', '.').replace('.py', '').strip())
+        return module_paths
 
 
 class GenericLinuxDaemon(Daemon):
@@ -107,7 +131,7 @@ class GenericLinuxDaemon(Daemon):
                             user=user)
 
     def register(self, plugin):
-        plugin_paths = utils.extract_module_paths_from_name(
+        plugin_paths = self._extract_module_paths_from_name(
             self.virtualenv_path, plugin
         )
 
@@ -151,7 +175,7 @@ class GenericLinuxDaemon(Daemon):
             includes = []
             for plugin in included_plugins:
                 includes.extend(
-                    utils.extract_module_paths_from_name(
+                    self._extract_module_paths_from_name(
                         self.virtualenv_path, plugin
                     )
                 )
@@ -215,17 +239,13 @@ class GenericLinuxDaemon(Daemon):
 
         broker_ip = self.optional_parameters.get('broker_ip') or manager_ip
 
-        self.work_dir = os.path.join(self.basedir, self.name, 'work')
-        if not os.path.exists(self.work_dir):
-            os.makedirs(self.work_dir)
-
         celeryd_conf = pkg_resources.resource_string(
             cloudify_agent.__name__,
             'resources/celeryd.conf.template')
         rendered = utils.render_template(
             celeryd_conf,
             queue=self.queue,
-            work_dir=self.work_dir,
+            work_dir=self.workdir,
             manager_ip=manager_ip,
             manager_port=self.manager_port,
             agent_ip=agent_ip,
@@ -238,3 +258,8 @@ class GenericLinuxDaemon(Daemon):
         )
 
         self._run('sudo cp {0} {1}'.format(rendered, self.config_path))
+
+
+HANDLERS = {
+    'init.d': GenericLinuxDaemon
+}

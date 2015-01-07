@@ -40,8 +40,8 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_DAEMON_USER),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_USER)
-@click.option('--basedir',
-              help='Base directory for runtime files (pid, log). '
+@click.option('--workdir',
+              help='Working directory for runtime files (pid, log). '
                    'Defaults to current working directory. [{0}]'
                    .format(env.CLOUDIFY_DAEMON_BASEDIR),
               envvar=env.CLOUDIFY_DAEMON_BASEDIR)
@@ -64,6 +64,12 @@ from cloudify_agent.shell import env
                    '<minimum,maximum> (e.g 2,5). [{0}]'
                    .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
               envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
+@click.option('--process-management',
+              help='The process management system to use when creating the daemon. [{0}]'
+                   .format(env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT),
+              type=click.Choice(['init.d']),
+              default='init.d',
+              envvar=env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT)
 def create(queue,
            agent_ip,
            manager_ip,

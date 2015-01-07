@@ -13,7 +13,6 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import tempfile
 import sys
 
 from celery import __main__
@@ -22,11 +21,6 @@ from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
 
 class TestWorkerCommandLine(BaseCommandLineTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super(TestWorkerCommandLine, cls).setUpClass()
-        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-worker-cli-tests-')
 
     def test_worker(self):
         self.assert_method_called(
