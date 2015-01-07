@@ -16,14 +16,14 @@
 import sys
 import click
 
-from celery.__main__ import main as celery_main
+from celery import __main__
 
 from cloudify_agent.shell.subcommands import daemon
 
 
 @click.group()
 def main():
-    _set_cli_except_hook()
+    sys.excepthook = exception_hook
 
 
 @click.command()
@@ -31,7 +31,7 @@ def main():
 def worker(celery_args):
     sys.argv = ['celery', 'worker']
     sys.argv.extend(celery_args)
-    celery_main()
+    __main__.main()
 
 
 @click.group('daemon')
@@ -46,12 +46,7 @@ daemon_sub_command.add_command(daemon.create)
 daemon_sub_command.add_command(daemon.register)
 
 
-def _set_cli_except_hook():
-
-    def new_excepthook(tpe, value, tb):
-
-        # TODO - add traceback with regards to debug flag
-        # TODO - add ability to specify debug flag
-        click.secho('[FATAL] {0}'.format(str(value)), fg='red')
-
-    sys.excepthook = new_excepthook
+def exception_hook(tpe, value, tb):
+    output = '[FATAL] {0}'.format(str(value))
+    click.secho(output, fg='red')
+    return output

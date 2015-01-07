@@ -174,10 +174,15 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                         .format(daemon.virtualenv_path,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
-        daemon_api.register(self.queue, 'mock-plugin')
-        self.runner.run('sudo service {0} start'.format(daemon.name))
-        self.daemon_name = daemon.name
-        self.assertRegisteredTasks(
-            self.queue,
-            additional_tasks=set(['mock_plugin.tasks.run'])
-        )
+        try:
+            daemon_api.register(self.queue, 'mock-plugin')
+            self.runner.run('sudo service {0} start'.format(daemon.name))
+            self.daemon_name = daemon.name
+            self.assertRegisteredTasks(
+                self.queue,
+                additional_tasks=set(['mock_plugin.tasks.run'])
+            )
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
+                            .format(daemon.virtualenv_path),
+                            stdout_pipe=False)

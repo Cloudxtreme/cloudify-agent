@@ -14,8 +14,9 @@
 #  * limitations under the License.
 
 import sys
-from cloudify_agent.shell import cli
 from mock import patch
+
+from cloudify_agent.shell import cli
 
 from cloudify_agent.tests import BaseTestCase
 

@@ -15,19 +15,19 @@
 
 
 import tempfile
-from click.testing import CliRunner
 
 from cloudify_agent.api import daemon
 from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
 
-class TestGenericLinuxDaemon(BaseCommandLineTestCase):
+class TestGenericLinuxDaemonCommandLine(BaseCommandLineTestCase):
+
+    PROCESS_MANAGEMENT = 'init.d'
 
     @classmethod
     def setUpClass(cls):
-        super(TestGenericLinuxDaemon, cls).setUpClass()
-        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-cli-tests-')
-        cls.runner = CliRunner()
+        super(TestGenericLinuxDaemonCommandLine, cls).setUpClass()
+        cls.temp_folder = tempfile.mkdtemp(prefix='cloudify-daemon-cli-tests-')
 
     def test_create(self):
         self.assert_method_called(
