@@ -34,3 +34,18 @@ class TestCommandLine(BaseCommandLineTestCase):
             import sys
             output = sys.excepthook(*sys.exc_info())
             self.assertEqual('[FATAL] Error', output)
+
+    def test_exception_hook_debug(self):
+
+        @click.command()
+        def raise_error():
+            raise RuntimeError('Error')
+
+        from cloudify_agent.shell.cli import main
+        main.add_command(raise_error, 'raise-error')
+        try:
+            self._run('cloudify-agent --debug raise-error')
+        except RuntimeError:
+            import sys
+            output = sys.excepthook(*sys.exc_info())
+            self.assertIn("raise RuntimeError('Error')", output)
