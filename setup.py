@@ -43,6 +43,7 @@ setup(
     packages=[
         'cloudify_agent',
         'cloudify_agent.shell',
+        'cloudify_agent.shell.subcommands',
         'cloudify_agent.api'],
     package_data={
         'cloudify_agent': ['resources/celeryd'],
