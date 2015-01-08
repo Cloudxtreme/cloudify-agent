@@ -46,7 +46,10 @@ setup(
         'cloudify_agent.shell.subcommands',
         'cloudify_agent.api'],
     package_data={
-        'cloudify_agent': ['resources/celeryd'],
+        'cloudify_agent': [
+            'resources/celeryd.conf.template',
+            'resources/celeryd.template',
+            'resources/disable-requiretty.sh'],
         },
     description="Cloudify's Agent",
     install_requires=install_requires,
