@@ -17,9 +17,6 @@ import json
 import os
 
 from cloudify_agent.api.utils import render_template
-from cloudify_agent.api.utils import dump_daemon_context
-from cloudify_agent.api.utils import load_daemon_context
-
 from cloudify_agent.tests.api import BaseApiTestCase
 
 
@@ -46,17 +43,3 @@ class TestUtils(BaseApiTestCase):
         file_path = render_template(template, **values)
         rendered = json.load(open(file_path))
         self.assertEqual(rendered['name'], 'test_name')
-
-    def test_load_non_existing_daemon_context(self):
-        self.assertRaises(RuntimeError, load_daemon_context,
-                          self.logger,
-                          'non_existing_queue')
-
-    def test_daemon_context(self):
-        dumped_context = {'a': 'value_a'}
-        dump_daemon_context(logger=self.logger,
-                            queue='test_queue',
-                            context=dumped_context)
-        loaded_context = load_daemon_context(logger=self.logger,
-                                             queue='test_queue')
-        self.assertEqual(dumped_context, loaded_context)

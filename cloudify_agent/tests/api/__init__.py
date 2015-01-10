@@ -50,7 +50,8 @@ class BaseApiTestCase(BaseTestCase):
 
     def setUp(self):
         super(BaseApiTestCase, self).setUp()
-        self.queue = 'test_queue-{0}'.format(str(uuid.uuid4())[0:4])
+        self.name = 'cloudify-agent-{0}'.format(str(uuid.uuid4())[0:4])
+        self.queue = '{0}-queue'.format(self.name)
         self.runner = LocalCommandRunner(self.logger)
         logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 

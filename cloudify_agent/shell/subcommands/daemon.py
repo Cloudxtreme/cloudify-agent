@@ -20,6 +20,11 @@ from cloudify_agent.shell import env
 
 
 @click.command()
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
+              required=True,
+              envvar=env.CLOUDIFY_DAEMON_NAME)
 @click.option('--queue',
               help='The name of the queue to register the agent to. [{0}]'
                    .format(env.CLOUDIFY_DAEMON_QUEUE),
@@ -71,7 +76,8 @@ from cloudify_agent.shell import env
               type=click.Choice(['init.d']),
               default='init.d',
               envvar=env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT)
-def create(queue,
+def create(name,
+           queue,
            agent_ip,
            manager_ip,
            user,
@@ -85,7 +91,8 @@ def create(queue,
 
     click.echo('Creating...')
 
-    daemon = daemon_api.create(
+    daemon_api.create(
+        name=name,
         queue=queue,
         agent_ip=agent_ip,
         manager_ip=manager_ip,
@@ -93,20 +100,19 @@ def create(queue,
         **optional_parameters
     )
     click.secho('Successfully created daemon: {0}'
-                .format(daemon.name), fg='green')
+                .format(name), fg='green')
 
 
 @click.command()
-@click.option('--queue', '-q',
-              help='The queue of the daemon for whom to '
-                   'register the plugin. [{0}]'
-                   .format(env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
-              envvar=env.CLOUDIFY_DAEMON_QUEUE)
-@click.option('--plugin', '-p',
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+@click.option('--plugin',
               help='The plugin name. As stated in its setup.py file.',
               required=True)
-def register(queue, plugin):
+def register(name, plugin):
 
     """
     Registers an additional plugin. All methods decorated with the 'operation'
@@ -115,19 +121,19 @@ def register(queue, plugin):
     """
 
     click.echo('Registering...')
-    daemon = daemon_api.register(queue, plugin)
+    daemon_api.register(name, plugin)
     click.secho('Successfully registered {0} with daemon: {1}'
-                .format(plugin, daemon.name),
+                .format(plugin, name),
                 fg='green')
 
 
 @click.command()
-@click.option('--queue', '-q',
-              help='The queue of the daemon to start [{0}]'
-                   .format(env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
-              envvar=env.CLOUDIFY_DAEMON_QUEUE)
-def start(queue):
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+def start(name):
 
     """
     Starts the daemon.
@@ -135,18 +141,18 @@ def start(queue):
     """
 
     click.echo('Starting...')
-    daemon = daemon_api.start(queue)
+    daemon_api.start(name)
     click.secho('Successfully started daemon: {0}'
-                .format(daemon.name), fg='green')
+                .format(name), fg='green')
 
 
 @click.command()
-@click.option('--queue', '-q',
-              help='The queue of the daemon to stop [{0}]'
-                   .format(env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
-              envvar=env.CLOUDIFY_DAEMON_QUEUE)
-def stop(queue):
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+def stop(name):
 
     """
     Stops the daemon.
@@ -154,18 +160,18 @@ def stop(queue):
     """
 
     click.echo('Stopping...')
-    daemon = daemon_api.stop(queue)
+    daemon_api.stop(name)
     click.secho('Successfully stopped daemon: {0}'
-                .format(daemon.name), fg='green')
+                .format(name), fg='green')
 
 
 @click.command()
-@click.option('--queue', '-q',
-              help='The queue of the daemon to restart [{0}]'
-              .format(env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
-              envvar=env.CLOUDIFY_DAEMON_QUEUE)
-def restart(queue):
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+def restart(name):
 
     """
     Restarts the daemon.
@@ -173,18 +179,18 @@ def restart(queue):
     """
 
     click.echo('Restarting...')
-    daemon = daemon_api.restart(queue)
+    daemon_api.restart(name)
     click.secho('Successfully restarted daemon: {0}'
-                .format(daemon.name), fg='green')
+                .format(name), fg='green')
 
 
 @click.command()
-@click.option('--queue', '-q',
-              help='The queue of the daemon to delete [{0}]'
-              .format(env.CLOUDIFY_DAEMON_QUEUE),
+@click.option('--name',
+              help='The name of the daemon. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
-              envvar=env.CLOUDIFY_DAEMON_QUEUE)
-def delete(queue):
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+def delete(name):
 
     """
     Deletes the daemon.
@@ -192,6 +198,6 @@ def delete(queue):
     """
 
     click.echo('Deleting...')
-    daemon = daemon_api.delete(queue)
+    daemon_api.delete(name)
     click.secho('Successfully deleted daemon: {0}'
-                .format(daemon.name), fg='green')
+                .format(name), fg='green')

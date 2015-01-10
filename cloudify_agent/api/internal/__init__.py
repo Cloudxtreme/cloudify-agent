@@ -14,15 +14,22 @@
 #  * limitations under the License.
 
 import os
-import tempfile
-from jinja2 import Template
+
+from cloudify.utils import LocalCommandRunner
 
 
-def render_template(template, **values):
-    template = Template(template)
-    rendered = template.render(**values)
-    temp = tempfile.mkstemp()
-    with open(temp[1], 'w') as f:
-        f.write(rendered)
-        f.write(os.linesep)
-        return f.name
+STATE_FOLDER = '/var/lib/cloudify-agent'
+
+# create the state folder if it doesnt exist
+if not os.path.exists(STATE_FOLDER):
+    LocalCommandRunner().run(
+        'sudo mkdir {0}'
+        .format(STATE_FOLDER)
+    )
+
+
+# import all daemon concrete implementations
+# so that we can use Daemon.__subclasses__()
+from cloudify_agent.api.internal.initd import GenericLinuxDaemon
+
+
