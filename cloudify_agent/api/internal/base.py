@@ -129,7 +129,7 @@ class Daemon(object):
         self.user = user
 
         # optional parameters with defaults
-        self.broker_ip = optional_parameters.get('broker_ip') or self.manager_ip
+        self.broker_ip = optional_parameters.get('broker_ip') or manager_ip
         self.broker_port = optional_parameters.get('broker_port') or 5672
         self.manager_port = optional_parameters.get('manager_port') or 80
         self.autoscale = optional_parameters.get('autoscale') or '0,5'

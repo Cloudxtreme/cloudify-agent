@@ -30,6 +30,4 @@ if not os.path.exists(STATE_FOLDER):
 
 # import all daemon concrete implementations
 # so that we can use Daemon.__subclasses__()
-from cloudify_agent.api.internal.initd import GenericLinuxDaemon
-
-
+from cloudify_agent.api.internal.initd import GenericLinuxDaemon  # NOQA

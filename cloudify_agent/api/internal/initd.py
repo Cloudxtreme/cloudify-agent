@@ -42,8 +42,10 @@ class GenericLinuxDaemon(Daemon):
         # init.d specific configuration
         self.script_path = os.path.join(self.SCRIPT_DIR, self.name)
         self.config_path = os.path.join(self.CONFIG_DIR, self.name)
-        self.includes_file_path = os.path.join(self.workdir,
-                                               '{0}-includes'.format(self.name))
+        self.includes_file_path = os.path.join(
+            self.workdir,
+            '{0}-includes'.format(self.name)
+        )
         self.virtualenv = os.path.dirname(os.path.dirname(sys.executable))
 
     def create(self):

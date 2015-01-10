@@ -23,7 +23,8 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     def test_create(self):
         self.assert_method_called(
-            'cloudify-agent daemon create --name=name --queue=queue --agent-ip=127.0.0.1 '
+            'cloudify-agent daemon create --name=name '
+            '--queue=queue --agent-ip=127.0.0.1 '
             '--manager-ip=127.0.0.1 --user={0}'.format(self.username),
             module=daemon,
             function_name='create',
