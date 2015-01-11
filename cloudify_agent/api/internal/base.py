@@ -17,11 +17,12 @@ import os
 import logging
 import json
 import tempfile
+import sys
 
 from cloudify.utils import setup_default_logger
 from cloudify.utils import LocalCommandRunner
 
-from cloudify_agent.api.internal import STATE_FOLDER
+from cloudify_agent.api.internal import DAEMON_CONTEXT_DIR
 
 LOGGER_NAME = 'cloudify.agent.api.daemon'
 
@@ -61,7 +62,7 @@ class DaemonFactory(object):
     @staticmethod
     def load(name):
         daemon_path = os.path.join(
-            STATE_FOLDER,
+            DAEMON_CONTEXT_DIR,
             '{0}.json'.format(name)
         )
         if not os.path.exists(daemon_path):
@@ -83,7 +84,7 @@ class DaemonFactory(object):
     def save(daemon):
         runner = LocalCommandRunner(logger=logger)
         daemon_path = os.path.join(
-            STATE_FOLDER, '{0}.json'.format(daemon.name)
+            DAEMON_CONTEXT_DIR, '{0}.json'.format(daemon.name)
         )
         temp = tempfile.mkstemp()
         with open(temp[1], 'w') as f:
@@ -140,6 +141,7 @@ class Daemon(object):
 
         # save for future reference
         self.optional_parameters = optional_parameters
+        self.virtualenv = os.path.dirname(os.path.dirname(sys.executable))
 
     def create(self):
         raise NotImplementedError('Must be implemented by subclass')

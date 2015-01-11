@@ -14,7 +14,6 @@
 #  * limitations under the License.
 
 
-import testtools
 import uuid
 import os
 
@@ -23,7 +22,7 @@ from cloudify_agent.api.internal.base import Daemon
 from cloudify_agent.tests.api import BaseApiTestCase
 
 
-class TestDaemonFactory(testtools.TestCase):
+class TestDaemonFactory(BaseApiTestCase):
 
     def test_create(self):
         daemon = DaemonFactory.create(

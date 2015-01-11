@@ -34,8 +34,8 @@ class BaseCommandLineTestCase(BaseTestCase):
         sys.argv = command.split()
         cli.main()
 
-    def assert_method_called(self, cli_command, module, function_name,
-                             args=None, kwargs=None):
+    def assert_function_called(self, cli_command, module, function_name,
+                               args=None, kwargs=None):
         if not kwargs:
             kwargs = {}
         if not args:

@@ -18,13 +18,13 @@ import os
 from cloudify.utils import LocalCommandRunner
 
 
-STATE_FOLDER = '/var/lib/cloudify-agent'
+DAEMON_CONTEXT_DIR = '/var/lib/cloudify-agent'
 
 # create the state folder if it doesnt exist
-if not os.path.exists(STATE_FOLDER):
+if not os.path.exists(DAEMON_CONTEXT_DIR):
     LocalCommandRunner().run(
         'sudo mkdir {0}'
-        .format(STATE_FOLDER)
+        .format(DAEMON_CONTEXT_DIR)
     )
 
 

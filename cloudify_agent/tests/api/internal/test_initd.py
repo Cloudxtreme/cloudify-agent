@@ -61,6 +61,105 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))
 
+    def test_delete(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        daemon.start()
+        daemon.stop()
+        daemon.delete()
+        self.assertFalse(os.path.exists(daemon.script_path))
+        self.assertFalse(os.path.exists(daemon.config_path))
+
+    def test_start(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        daemon.start()
+        self.assert_daemon_alive(self.queue)
+        self.assert_registered_tasks(daemon.queue)
+
+    def test_stop(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        daemon.start()
+        daemon.stop()
+        self.assert_daemon_dead(self.queue)
+
+    def test_register(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        from cloudify_agent.tests import resources
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
+                        .format(daemon.virtualenv,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        try:
+            daemon.register('mock-plugin')
+            daemon.start()
+            self.assert_registered_tasks(
+                self.queue,
+                additional_tasks=set(['mock_plugin.tasks.run'])
+            )
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
+                            .format(daemon.virtualenv),
+                            stdout_pipe=False)
+
+    def test_restart(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        from cloudify_agent.tests import resources
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
+                        .format(daemon.virtualenv,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        daemon.start()
+        try:
+            daemon.register('mock-plugin')
+            daemon.restart()
+            self.assert_registered_tasks(
+                self.queue,
+                additional_tasks=set(['mock_plugin.tasks.run'])
+            )
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
+                            .format(daemon.virtualenv),
+                            stdout_pipe=False)
+
     def test_create_twice(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
@@ -125,20 +224,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon.create)
 
-    def test_start(self):
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder
-        )
-        daemon.create()
-        daemon.start()
-        self.assert_daemon_alive(self.queue)
-        self.assert_registered_tasks(daemon.queue)
-
     def test_start_twice(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
@@ -156,20 +241,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
 
-    def test_stop(self):
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder
-        )
-        daemon.create()
-        daemon.start()
-        daemon.stop()
-        self.assert_daemon_dead(self.queue)
-
     def test_stop_twice(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
@@ -185,61 +256,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         self.assert_daemon_dead(self.queue)
         daemon.stop()
         self.assert_daemon_dead(self.queue)
-
-    def test_register_before_start(self):
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder
-        )
-        daemon.create()
-        from cloudify_agent.tests import resources
-        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
-                                os.path.dirname(resources.__file__)),
-                        stdout_pipe=False)
-        try:
-            daemon.register('mock-plugin')
-            daemon.start()
-            self.assert_registered_tasks(
-                self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
-            )
-        finally:
-            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
-                            stdout_pipe=False)
-
-    def test_register_after_started(self):
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder
-        )
-        daemon.create()
-        from cloudify_agent.tests import resources
-        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
-                                os.path.dirname(resources.__file__)),
-                        stdout_pipe=False)
-        daemon.start()
-        try:
-            daemon.register('mock-plugin')
-            daemon.restart()
-            self.assert_registered_tasks(
-                self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
-            )
-        finally:
-            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
-                            stdout_pipe=False)
 
     def test_two_daemons(self):
         queue1 = '{0}-1'.format(self.queue)
@@ -286,19 +302,3 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.create()
         daemon.start()
         self.assertRaises(RuntimeError, daemon.delete)
-
-    def test_delete_after_stop(self):
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder
-        )
-        daemon.create()
-        daemon.start()
-        daemon.stop()
-        daemon.delete()
-        self.assertFalse(os.path.exists(daemon.script_path))
-        self.assertFalse(os.path.exists(daemon.config_path))

@@ -23,7 +23,7 @@ from cloudify_agent.tests.shell import BaseCommandLineTestCase
 class TestWorkerCommandLine(BaseCommandLineTestCase):
 
     def test_worker(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent worker -- --queue=queue',
             module=__main__,
             function_name='main',

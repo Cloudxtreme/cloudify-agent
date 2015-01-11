@@ -22,7 +22,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
     PROCESS_MANAGEMENT = 'init.d'
 
     def test_create(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon create --name=name '
             '--queue=queue --agent-ip=127.0.0.1 '
             '--manager-ip=127.0.0.1 --user={0}'.format(self.username),
@@ -44,7 +44,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
     def test_start(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon start --name=name',
             module=daemon,
             function_name='start',
@@ -52,7 +52,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
     def test_stop(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon stop --name=name',
             module=daemon,
             function_name='stop',
@@ -60,7 +60,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
     def test_delete(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon delete --name=name',
             module=daemon,
             function_name='delete',
@@ -68,7 +68,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
     def test_restart(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon restart --name=name',
             module=daemon,
             function_name='restart',
@@ -76,7 +76,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
     def test_register(self):
-        self.assert_method_called(
+        self.assert_function_called(
             'cloudify-agent daemon register --name=name --plugin=plugin',
             module=daemon,
             function_name='register',

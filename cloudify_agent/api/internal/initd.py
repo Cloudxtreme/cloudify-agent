@@ -15,7 +15,6 @@
 
 import os
 import pkg_resources
-import sys
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
@@ -46,7 +45,6 @@ class GenericLinuxDaemon(Daemon):
             self.workdir,
             '{0}-includes'.format(self.name)
         )
-        self.virtualenv = os.path.dirname(os.path.dirname(sys.executable))
 
     def create(self):
         self._validate_create()
