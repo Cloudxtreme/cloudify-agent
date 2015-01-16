@@ -64,7 +64,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             args = [sudo_test_file]
             self.logger.info('Sending task {0} with args {1}'
                              .format(task_name, args))
-            async = celery.send_task(task_name, args=args)
+            async = celery.send_task(task_name, queues=[self.queue], args=args)
             self.logger.info('AsyncResult: {0}'.format(async))
             async.get(timeout=5)
             self.assertTrue(os.path.exists(sudo_test_file))
