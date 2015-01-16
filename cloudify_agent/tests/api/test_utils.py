@@ -13,33 +13,51 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import json
 import os
 
-from cloudify_agent.api.utils import render_template
+import cloudify_agent
+from cloudify_agent.api import utils
 from cloudify_agent.tests.api import BaseApiTestCase
 
 
 class TestUtils(BaseApiTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestUtils, cls).setUpClass()
-        if 'TRAVIS_BUILD_DIR' not in os.environ \
-                and 'FORCE_TESTS' not in os.environ:
-            raise RuntimeError(
-                'Error! These tests require sudo '
-                'permissions and may manipulate system wide files. '
-                'Therefore they are only executed on the travis CI system. '
-                'If you are ABSOLUTELY sure you wish to '
-                'run them on your local box, set the FORCE_TESTS '
-                'environment variable to bypass this restriction.')
+    def test_get_resource(self):
+        resource = utils.get_resource('celeryd.conf.template')
+        path_to_resource = os.path.join(
+            os.path.dirname(cloudify_agent.__file__),
+            'resources',
+            'celeryd.conf.template'
+        )
+        with open(path_to_resource) as f:
+            self.assertEqual(f.read(), resource)
 
-    def test_render_template(self):
+    def test_rendered_template_to_tempfile(self):
+        tempfile = utils.rendered_template_to_tempfile(
+            template_path='celeryd.conf.template',
+            workdir='workdir'
+        )
+        with open(tempfile) as f:
+            rendered = f.read()
+            self.assertIn('CELERY_WORK_DIR="workdir"', rendered)
 
-        template = '{"name": "{{ name }}"}'
-        values = {'name': 'test_name'}
+    def test_resource_to_tempfile(self):
+        tempfile = utils.resource_to_tempfile(
+            resource_path='celeryd.conf.template'
+        )
+        path_to_resource = os.path.join(
+            os.path.dirname(cloudify_agent.__file__),
+            'resources',
+            'celeryd.conf.template'
+        )
+        with open(path_to_resource) as expected:
+            with open(tempfile) as actual:
+                self.assertEqual(expected.read(),
+                                 actual.read())
 
-        file_path = render_template(template, **values)
-        rendered = json.load(open(file_path))
-        self.assertEqual(rendered['name'], 'test_name')
+    def test_content_to_tempfile(self):
+        tempfile = utils.content_to_tempfile(
+            content='content'
+        )
+        with open(tempfile) as f:
+            self.assertEqual('content', f.read())

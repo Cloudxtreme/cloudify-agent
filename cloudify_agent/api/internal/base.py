@@ -146,6 +146,8 @@ class Daemon(object):
             'manager_port') or defaults.MANAGER_PORT
         self.autoscale = optional_parameters.get(
             'autoscale') or defaults.AUTOSCALE
+        self.disable_requiretty = optional_parameters.get(
+            'disable_requiretty') or defaults.DISABLE_REQUIRETTY
         self.workdir = optional_parameters.get('workdir') or os.getcwd()
 
         # configure logger

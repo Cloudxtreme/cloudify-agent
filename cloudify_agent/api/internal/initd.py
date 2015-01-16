@@ -14,13 +14,11 @@
 #  * limitations under the License.
 
 import os
-import pkg_resources
 import time
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
 
-import cloudify_agent
 from cloudify_agent.api import utils
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api.internal.base import Daemon
@@ -53,6 +51,8 @@ class GenericLinuxDaemon(Daemon):
         self._create_includes()
         self._create_script()
         self._create_config()
+        if self.disable_requiretty:
+            self._disable_requiretty()
 
     def start(self,
               interval=defaults.START_INTERVAL,
@@ -208,13 +208,11 @@ class GenericLinuxDaemon(Daemon):
         Uses the template 'resources/celeryd.template'.
 
         """
-        celeryd = pkg_resources.resource_string(
-            cloudify_agent.__name__,
-            'resources/celeryd.template')
 
-        rendered = utils.render_template(celeryd,
-                                         daemon_name=self.name)
-
+        rendered = utils.rendered_template_to_tempfile(
+            template_path='celeryd.template',
+            daemon_name=self.name
+        )
         self._run('sudo cp {0} {1}'.format(rendered, self.script_path))
         self._run('sudo chmod +x {0}'.format(self.script_path))
 
@@ -227,13 +225,10 @@ class GenericLinuxDaemon(Daemon):
 
         """
 
-        celeryd_conf = pkg_resources.resource_string(
-            cloudify_agent.__name__,
-            'resources/celeryd.conf.template')
-        rendered = utils.render_template(
-            celeryd_conf,
+        rendered = utils.rendered_template_to_tempfile(
+            template_path='celeryd.conf.template',
             queue=self.queue,
-            work_dir=self.workdir,
+            workdir=self.workdir,
             manager_ip=self.manager_ip,
             manager_port=self.manager_port,
             agent_ip=self.agent_ip,
@@ -247,8 +242,30 @@ class GenericLinuxDaemon(Daemon):
 
         self._run('sudo cp {0} {1}'.format(rendered, self.config_path))
 
+    def _disable_requiretty(self):
+
+        """
+        Disables the requiretty directive in the /etc/sudoers file. This
+        will enable operations that require sudo permissions to work properly.
+
+        This is needed because operations are executed
+        from within the worker process,
+        which is not a tty process.
+
+        """
+
+        disable_requiretty_script_path = utils.resource_to_tempfile(
+            resource_path='disable-requiretty.sh'
+        )
+        self._run('chmod +x {0}'.format(disable_requiretty_script_path))
+        self._run('sudo {0}'.format(disable_requiretty_script_path))
+
     def _verify_no_celery_error(self):
 
+        """
+        Verifies no error was raised on celery startup.
+
+        """
         error_file_path = os.path.join(self.workdir,
                                        'celery_error.out')
 

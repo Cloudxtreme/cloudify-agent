@@ -14,10 +14,11 @@
 #  * limitations under the License.
 
 from cloudify_agent.api.internal.base import DaemonFactory
+from cloudify_agent.api import defaults
 
 
 """
-Public API for controlling a Daemon's lifecycle.
+Public API for a Daemon's lifecycle.
 """
 
 
@@ -60,7 +61,9 @@ def create(name,
     return daemon
 
 
-def start(name, interval, timeout):
+def start(name,
+          interval=defaults.START_INTERVAL,
+          timeout=defaults.START_TIMEOUT):
 
     """
     Start the daemon process.
@@ -87,7 +90,9 @@ def start(name, interval, timeout):
     return daemon
 
 
-def stop(name, interval, timeout):
+def stop(name,
+         interval=defaults.STOP_INTERVAL,
+         timeout=defaults.STOP_TIMEOUT):
 
     """
     Stops the daemon process.

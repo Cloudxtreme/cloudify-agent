@@ -15,14 +15,34 @@
 
 import os
 import tempfile
+import pkg_resources
 from jinja2 import Template
 
+import cloudify_agent
 
-def render_template(template, **values):
-    template = Template(template)
-    rendered = template.render(**values)
+
+def rendered_template_to_tempfile(template_path, **values):
+    template = get_resource(template_path)
+    rendered = Template(template).render(**values)
+    return content_to_tempfile(rendered)
+
+
+def resource_to_tempfile(resource_path):
+    resource = get_resource(resource_path)
+    return content_to_tempfile(resource)
+
+
+def get_resource(resource_path):
+    return pkg_resources.resource_string(
+        cloudify_agent.__name__,
+        os.path.join('resources', resource_path)
+    )
+
+
+def content_to_tempfile(content):
     temp = tempfile.mkstemp()
     with open(temp[1], 'w') as f:
-        f.write(rendered)
-        f.write(os.linesep)
+        f.write(content)
         return f.name
+
+

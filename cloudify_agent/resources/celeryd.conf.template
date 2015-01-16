@@ -1,6 +1,6 @@
 # local variables
 WORKER_QUEUE="{{ queue }}"
-CELERY_WORK_DIR="{{ work_dir }}"
+CELERY_WORK_DIR="{{ workdir }}"
 
 # Cloudify plugins environment variables
 export MANAGER_IP="{{ manager_ip }}"

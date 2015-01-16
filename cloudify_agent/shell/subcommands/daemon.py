@@ -70,6 +70,11 @@ from cloudify_agent.shell import env
                    '<minimum,maximum> (e.g 2,5). [{0}]'
                    .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
               envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
+@click.option('--disable-requiretty/--no-disable-requiretty',
+              help='Disables the requiretty directive in the sudoers file'
+              .format(env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY),
+              default=False,
+              envvar=env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY)
 @click.option('--process-management',
               help='The process management system to use '
                    'when creating the daemon. [{0}]'

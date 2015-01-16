@@ -39,24 +39,25 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
                 'broker_ip': None,
                 'broker_port': None,
                 'manager_port': None,
-                'autoscale': None
+                'autoscale': None,
+                'disable_requiretty': False
             }
         )
 
     def test_start(self):
         self.assert_function_called(
-            'cloudify-agent daemon start --name=name',
+            'cloudify-agent daemon start --name=name --interval 5 --timeout 20',
             module=daemon,
             function_name='start',
-            args=['name']
+            args=['name', 5, 20]
         )
 
     def test_stop(self):
         self.assert_function_called(
-            'cloudify-agent daemon stop --name=name',
+            'cloudify-agent daemon stop --name=name --interval 5 --timeout 20',
             module=daemon,
             function_name='stop',
-            args=['name']
+            args=['name', 5, 20]
         )
 
     def test_delete(self):
