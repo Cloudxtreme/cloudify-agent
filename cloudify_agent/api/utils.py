@@ -44,5 +44,3 @@ def content_to_tempfile(content):
     with open(temp[1], 'w') as f:
         f.write(content)
         return f.name
-
-

@@ -46,7 +46,8 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     def test_start(self):
         self.assert_function_called(
-            'cloudify-agent daemon start --name=name --interval 5 --timeout 20',
+            'cloudify-agent daemon start --name=name '
+            '--interval 5 --timeout 20',
             module=daemon,
             function_name='start',
             args=['name', 5, 20]
@@ -54,7 +55,8 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     def test_stop(self):
         self.assert_function_called(
-            'cloudify-agent daemon stop --name=name --interval 5 --timeout 20',
+            'cloudify-agent daemon stop --name=name '
+            '--interval 5 --timeout 20',
             module=daemon,
             function_name='stop',
             args=['name', 5, 20]
