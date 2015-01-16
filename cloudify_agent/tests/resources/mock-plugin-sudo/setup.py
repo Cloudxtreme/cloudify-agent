@@ -23,6 +23,6 @@ setup(
     author='Gigaspaces',
     author_email='cloudify@gigaspaces.com',
     packages=[
-        'mock_plugin'
+        'mock_plugin_sudo'
     ]
 )
