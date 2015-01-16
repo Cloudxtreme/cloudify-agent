@@ -258,9 +258,9 @@ class GenericLinuxDaemon(Daemon):
             resource_path='disable-requiretty.sh'
         )
         self._run('chmod +x {0}'.format(disable_requiretty_script_path))
-        result = self._run('cat {0}'.format(disable_requiretty_script_path))
-        self.logger.info(result.std_out)
-        self._run('sudo {0}'.format(disable_requiretty_script_path))
+        runner = LocalCommandRunner()
+        runner.run('sudo {0}'.format(disable_requiretty_script_path),
+                   stdout_pipe=False, stderr_pipe=False)
 
     def _verify_no_celery_error(self):
 

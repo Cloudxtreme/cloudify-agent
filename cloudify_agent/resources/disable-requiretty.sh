@@ -1,5 +1,6 @@
 #!/bin/bash
 # now modify sudoers configuration to allow execution without tty
+echo Checking distribution
 grep -i ubuntu /proc/version > /dev/null
 if [ "$?" -eq "0" ]; then
     # ubuntu
