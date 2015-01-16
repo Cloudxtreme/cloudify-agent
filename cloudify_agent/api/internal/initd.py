@@ -257,7 +257,7 @@ class GenericLinuxDaemon(Daemon):
         disable_requiretty_script_path = utils.resource_to_tempfile(
             resource_path='disable-requiretty.sh'
         )
-        self._run('chmod +x {0}'.format(disable_requiretty_script_path))
+        self._run('sudo chmod +x {0}'.format(disable_requiretty_script_path))
         os.system('sudo {0}'.format(disable_requiretty_script_path))
         # self._run('sudo {0}'.format(disable_requiretty_script_path))
 
