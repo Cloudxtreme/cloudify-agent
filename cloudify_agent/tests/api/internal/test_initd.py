@@ -19,6 +19,7 @@ from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.api.internal.initd import GenericLinuxDaemon
 from cloudify_agent.tests.api import BaseApiTestCase
+from cloudify.celery import celery
 
 from cloudify_agent.tests import resources
 
@@ -39,6 +40,38 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                 'If you are ABSOLUTELY sure you wish to '
                 'run them on your local box, set the FORCE_TESTS '
                 'environment variable to bypass this restriction.')
+
+    def test_create_disable_requiretty(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            disable_requiretty=True
+        )
+        daemon.create()
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin-sudo'
+                        .format(daemon.virtualenv,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        try:
+            daemon.register('mock-plugin-sudo')
+            daemon.start()
+            sudo_test_file = os.path.join(self.temp_folder, 'sudo-test')
+            task_name = 'mock_plugin_sudo.tasks.run'
+            args = [sudo_test_file]
+            self.logger.info('Sending task {0} with args {1}'
+                             .format(task_name, args))
+            async = celery.send_task(task_name, args=args)
+            self.logger.info('AsyncResult: {0}'.format(async))
+            async.get(timeout=5)
+            self.assertTrue(os.path.exists(sudo_test_file))
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin-sudo'
+                            .format(daemon.virtualenv),
+                            stdout_pipe=False)
 
     def test_create(self):
         daemon = GenericLinuxDaemon(
