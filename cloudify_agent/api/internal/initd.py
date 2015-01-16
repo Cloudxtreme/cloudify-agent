@@ -15,6 +15,7 @@
 
 import os
 import pkg_resources
+import time
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
@@ -23,6 +24,7 @@ import cloudify_agent
 from cloudify_agent.api import utils
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api.internal.base import Daemon
+from cloudify_agent.api import defaults
 
 
 class GenericLinuxDaemon(Daemon):
@@ -52,8 +54,41 @@ class GenericLinuxDaemon(Daemon):
         self._create_script()
         self._create_config()
 
-    def start(self):
+    def start(self,
+              interval=defaults.START_INTERVAL,
+              timeout=defaults.STOP_TIMEOUT):
         self._run('sudo service {0} start'.format(self.name))
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            stats = self._get_worker_stats()
+            if stats:
+                return
+            time.sleep(interval)
+        self._verify_no_celery_error()
+        raise RuntimeError('Failed starting agent. '
+                           'waited for {0} seconds.'
+                           .format(timeout))
+
+    def stop(self,
+             interval=defaults.STOP_TIMEOUT,
+             timeout=defaults.STOP_TIMEOUT):
+        self._run('sudo service {0} stop'.format(self.name))
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            stats = self._get_worker_stats()
+            if not stats:
+                return
+            time.sleep(interval)
+        self._verify_no_celery_error()
+        raise RuntimeError('Failed stopping Cloudify agent. '
+                           'waited for {0} seconds.'
+                           .format(timeout))
+
+    def delete(self):
+        self._validate_delete()
+        self._run('sudo rm {0}'.format(self.script_path))
+        self._run('sudo rm {0}'.format(self.config_path))
+        self._run('sudo rm -rf {0}'.format(self.workdir))
 
     def register(self, plugin):
         plugin_paths = self._list_plugin_files(self.virtualenv,
@@ -68,15 +103,6 @@ class GenericLinuxDaemon(Daemon):
 
         with open(self.includes_file_path, 'w') as f:
             f.write(new_includes)
-
-    def stop(self):
-        self._run('sudo service {0} stop'.format(self.name))
-
-    def delete(self):
-        self._validate_delete()
-        self._run('sudo rm {0}'.format(self.script_path))
-        self._run('sudo rm {0}'.format(self.config_path))
-        self._run('sudo rm -rf {0}'.format(self.workdir))
 
     def restart(self):
         self._run('sudo service {0} restart'.format(self.name))
@@ -167,10 +193,9 @@ class GenericLinuxDaemon(Daemon):
 
         """
         Validate we can delete this daemon files.
+
         """
-        destination = 'celery.{0}'.format(self.queue)
-        inspect = celery.control.inspect(destination=[destination])
-        stats = (inspect.stats() or {}).get(destination)
+        stats = self._get_worker_stats()
         if stats:
             raise RuntimeError('Cannot delete daemon {0}. '
                                'Process still running'
@@ -221,3 +246,25 @@ class GenericLinuxDaemon(Daemon):
         )
 
         self._run('sudo cp {0} {1}'.format(rendered, self.config_path))
+
+    def _verify_no_celery_error(self):
+
+        error_file_path = os.path.join(self.workdir,
+                                       'celery_error.out')
+
+        # this means the celery worker had an uncaught
+        # exception and it wrote its content
+        # to the file above because of our custom exception
+        # handler (see celery.py)
+        if os.path.exists(error_file_path):
+            with open(error_file_path) as f:
+                error = f.read()
+            os.remove(error_file_path)
+            raise RuntimeError(error)
+
+    def _get_worker_stats(self):
+        destination = 'celery.{0}'.format(self.queue)
+        inspect = celery.control.inspect(
+            destination=[destination])
+        stats = (inspect.stats() or {}).get(destination)
+        return stats

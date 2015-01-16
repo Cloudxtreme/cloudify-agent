@@ -19,6 +19,8 @@ from cloudify_agent.api.internal import DAEMON_CONTEXT_DIR
 from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.api import daemon as api
 
+from cloudify_agent.api.internal.base import VIRTUALENV
+
 
 class TestApi(BaseApiTestCase):
 
@@ -76,7 +78,7 @@ class TestApi(BaseApiTestCase):
 
     def test_register(self):
         from cloudify_agent.tests import resources
-        daemon = api.create(
+        api.create(
             name=self.name,
             queue=self.queue,
             agent_ip='127.0.0.1',
@@ -85,19 +87,19 @@ class TestApi(BaseApiTestCase):
             process_management='init.d'
         )
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         try:
-            daemon.register('mock-plugin')
-            daemon.start()
+            api.register(self.name, 'mock-plugin')
+            api.start(self.name)
             self.assert_registered_tasks(
                 self.queue,
                 additional_tasks=set(['mock_plugin.tasks.run'])
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)
 
     def test_delete(self):
@@ -118,7 +120,7 @@ class TestApi(BaseApiTestCase):
 
     def test_restart(self):
         from cloudify_agent.tests import resources
-        daemon = api.create(
+        api.create(
             name=self.name,
             queue=self.queue,
             agent_ip='127.0.0.1',
@@ -127,19 +129,19 @@ class TestApi(BaseApiTestCase):
             process_management='init.d'
         )
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         api.start(self.name)
         self.assert_registered_tasks(self.queue)
         try:
-            daemon.register('mock-plugin')
-            daemon.restart()
+            api.register(self.name, 'mock-plugin')
+            api.restart(self.name)
             self.assert_registered_tasks(
                 self.queue,
                 additional_tasks=set(['mock_plugin.tasks.run'])
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)

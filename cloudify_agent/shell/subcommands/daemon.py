@@ -16,6 +16,7 @@
 import click
 
 from cloudify_agent.api import daemon as daemon_api
+from cloudify_agent.api import defaults
 from cloudify_agent.shell import env
 
 
@@ -85,7 +86,6 @@ def create(name,
 
     """
     Creates the necessary configuration files for the daemon.
-    Supported daemon types: [init.d].
 
     """
 
@@ -133,7 +133,15 @@ def register(name, plugin):
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
-def start(name):
+@click.option('--interval',
+              help='The interval in seconds to sleep when waiting '
+                   'for the daemon to be ready.',
+              default=defaults.START_INTERVAL)
+@click.option('--timeout',
+              help='The timeout in seconds to wait '
+                   'for the daemon to be ready.',
+              default=defaults.START_TIMEOUT)
+def start(name, interval, timeout):
 
     """
     Starts the daemon.
@@ -141,7 +149,7 @@ def start(name):
     """
 
     click.echo('Starting...')
-    daemon_api.start(name)
+    daemon_api.start(name, interval, timeout)
     click.secho('Successfully started daemon: {0}'
                 .format(name), fg='green')
 
@@ -152,7 +160,15 @@ def start(name):
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
-def stop(name):
+@click.option('--interval',
+              help='The interval in seconds to sleep when waiting '
+                   'for the daemon to stop.',
+              default=defaults.STOP_INTERVAL)
+@click.option('--timeout',
+              help='The timeout in seconds to wait '
+                   'for the daemon to stop.',
+              default=defaults.STOP_TIMEOUT)
+def stop(name, interval, timeout):
 
     """
     Stops the daemon.
@@ -160,7 +176,7 @@ def stop(name):
     """
 
     click.echo('Stopping...')
-    daemon_api.stop(name)
+    daemon_api.stop(name, interval, timeout)
     click.secho('Successfully stopped daemon: {0}'
                 .format(name), fg='green')
 

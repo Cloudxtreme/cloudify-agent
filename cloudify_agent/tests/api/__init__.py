@@ -48,6 +48,14 @@ BUILT_IN_TASKS = [
 
 class BaseApiTestCase(BaseTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super(BaseApiTestCase, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(BaseApiTestCase, cls).tearDownClass()
+
     def setUp(self):
         super(BaseApiTestCase, self).setUp()
         self.name = 'cloudify-agent-{0}'.format(str(uuid.uuid4())[0:4])
@@ -55,12 +63,13 @@ class BaseApiTestCase(BaseTestCase):
         self.runner = LocalCommandRunner(self.logger)
         logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
 
-    @classmethod
-    def setUpClass(cls):
-        super(BaseApiTestCase, cls).setUpClass()
+    def tearDown(self):
+        super(BaseApiTestCase, self).tearDown()
+        pong = celery.control.ping()
+        if pong:
+            self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
 
     def assert_registered_tasks(self, queue, additional_tasks=None):
-        # assert tasks are registered as we expect
         if not additional_tasks:
             additional_tasks = set()
         destination = 'celery.{0}'.format(queue)

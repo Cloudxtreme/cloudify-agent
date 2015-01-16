@@ -60,33 +60,57 @@ def create(name,
     return daemon
 
 
-def start(name):
+def start(name, interval, timeout):
 
     """
     Start the daemon process.
 
     :param name: The name given to the daemon on `create`.
+
+    :param interval:
+        The interval in seconds to sleep when waiting
+        for the daemon to be ready
+
+    :param timeout:
+        The timeout in seconds to wait for
+        the daemon to be ready.
+
     :return: The daemon instance.
     :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
-    daemon.start()
+    daemon.start(
+        interval=interval,
+        timeout=timeout
+    )
     return daemon
 
 
-def stop(name):
+def stop(name, interval, timeout):
 
     """
     Stops the daemon process.
 
     :param name: The name given to the daemon on `create`.
+
+    :param interval:
+        The interval in seconds to sleep when waiting
+        for the daemon to stop.
+
+    :param timeout:
+        The timeout in seconds to wait for
+        the daemon to stop.
+
     :return: The daemon instance.
     :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
-    daemon.stop()
+    daemon.stop(
+        interval=interval,
+        timeout=timeout
+    )
     return daemon
 
 
@@ -102,6 +126,7 @@ def delete(name):
 
     daemon = DaemonFactory.load(name)
     daemon.delete()
+    DaemonFactory.delete(daemon)
     return daemon
 
 

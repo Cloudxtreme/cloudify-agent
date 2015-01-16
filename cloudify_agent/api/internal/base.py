@@ -23,8 +23,10 @@ from cloudify.utils import setup_default_logger
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.api.internal import DAEMON_CONTEXT_DIR
+from cloudify_agent.api import defaults
 
 LOGGER_NAME = 'cloudify.agent.api.daemon'
+VIRTUALENV = os.path.dirname(os.path.dirname(sys.executable))
 
 logger = setup_default_logger(LOGGER_NAME,
                               level=logging.INFO)
@@ -103,6 +105,13 @@ class DaemonFactory(object):
             .format(temp[1], daemon_path)
         )
 
+    @staticmethod
+    def delete(daemon):
+        daemon_context = os.path.join(DAEMON_CONTEXT_DIR,
+                                      '{0}.json'.format(daemon.name))
+        runner = LocalCommandRunner(logger=logger)
+        runner.run('sudo rm {0}'.format(daemon_context))
+
 
 class Daemon(object):
 
@@ -131,9 +140,12 @@ class Daemon(object):
 
         # optional parameters with defaults
         self.broker_ip = optional_parameters.get('broker_ip') or manager_ip
-        self.broker_port = optional_parameters.get('broker_port') or 5672
-        self.manager_port = optional_parameters.get('manager_port') or 80
-        self.autoscale = optional_parameters.get('autoscale') or '0,5'
+        self.broker_port = optional_parameters.get(
+            'broker_port') or defaults.BROKER_PORT
+        self.manager_port = optional_parameters.get(
+            'manager_port') or defaults.MANAGER_PORT
+        self.autoscale = optional_parameters.get(
+            'autoscale') or defaults.AUTOSCALE
         self.workdir = optional_parameters.get('workdir') or os.getcwd()
 
         # configure logger
@@ -141,18 +153,18 @@ class Daemon(object):
 
         # save for future reference
         self.optional_parameters = optional_parameters
-        self.virtualenv = os.path.dirname(os.path.dirname(sys.executable))
+        self.virtualenv = VIRTUALENV
 
     def create(self):
         raise NotImplementedError('Must be implemented by subclass')
 
-    def start(self):
+    def start(self, interval, timeout):
         raise NotImplementedError('Must be implemented by subclass')
 
     def register(self, plugin):
         raise NotImplementedError('Must be implemented by subclass')
 
-    def stop(self):
+    def stop(self, interval, timeout):
         raise NotImplementedError('Must be implemented by subclass')
 
     def delete(self):

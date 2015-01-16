@@ -15,11 +15,12 @@
 
 import os
 
-from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.api.internal.initd import GenericLinuxDaemon
 from cloudify_agent.tests.api import BaseApiTestCase
+
+from cloudify_agent.tests import resources
 
 
 class TestGenericLinuxDaemon(BaseApiTestCase):
@@ -38,15 +39,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                 'If you are ABSOLUTELY sure you wish to '
                 'run them on your local box, set the FORCE_TESTS '
                 'environment variable to bypass this restriction.')
-
-    def setUp(self):
-        super(TestGenericLinuxDaemon, self).setUp()
-
-    def tearDown(self):
-        super(TestGenericLinuxDaemon, self).tearDown()
-        pong = celery.control.ping()
-        if pong:
-            self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
 
     def test_create(self):
         daemon = GenericLinuxDaemon(
@@ -115,7 +107,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             workdir=self.temp_folder
         )
         daemon.create()
-        from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
                         .format(daemon.virtualenv,
                                 os.path.dirname(resources.__file__)),
@@ -224,6 +215,48 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon.create)
 
+    def test_start_with_error(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin-error'
+                        .format(daemon.virtualenv,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        try:
+            daemon.register('mock-plugin-error')
+            try:
+                daemon.start()
+                self.fail('Expected start operation to fail '
+                          'due to bad import')
+            except RuntimeError as e:
+                self.assertIn('cannot import name non_existent', str(e))
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin-error'
+                            .format(daemon.virtualenv),
+                            stdout_pipe=False)
+
+    def test_start_short_timeout(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        try:
+            daemon.start(timeout=-1)
+        except RuntimeError as e:
+            self.assertIn('waited for -1 seconds', str(e))
+
     def test_start_twice(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
@@ -240,6 +273,22 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.start()
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
+
+    def test_stop_short_timeout(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder
+        )
+        daemon.create()
+        daemon.start()
+        try:
+            daemon.stop(timeout=-1)
+        except RuntimeError as e:
+            self.assertIn('waited for -1 seconds', str(e))
 
     def test_stop_twice(self):
         daemon = GenericLinuxDaemon(

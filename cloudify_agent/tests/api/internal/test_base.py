@@ -46,7 +46,7 @@ class TestDaemonFactory(BaseApiTestCase):
             },
             daemon.optional_parameters)
 
-    def test_save_load(self):
+    def test_save_load_delete(self):
 
         name = 'name-{0}'.format(str(uuid.uuid4())[0:4])
         daemon = DaemonFactory.create(
@@ -73,6 +73,8 @@ class TestDaemonFactory(BaseApiTestCase):
                 'optional2': 'optional2'
             },
             loaded.optional_parameters)
+        DaemonFactory.delete(daemon)
+        self.assertRaises(IOError, DaemonFactory.load, daemon)
 
     def test_load_non_existing(self):
         self.assertRaises(IOError,
