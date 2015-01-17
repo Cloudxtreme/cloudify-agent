@@ -153,6 +153,9 @@ class Daemon(object):
         # configure logger
         self.logger = logger
 
+        self.logger.debug('Working directory for {0} will be: {1}'
+                          .format(self.name, self.workdir))
+
         # save for future reference
         self.optional_parameters = optional_parameters
         self.virtualenv = VIRTUALENV

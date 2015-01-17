@@ -20,4 +20,6 @@ from cloudify.decorators import operation
 
 @operation
 def run(test_file, **kwargs):
-    os.system('sudo touch {0}'.format(test_file))
+    code = os.system('sudo touch {0}'.format(test_file))
+    if code != 0:
+        raise RuntimeError('Failed running sudo command')

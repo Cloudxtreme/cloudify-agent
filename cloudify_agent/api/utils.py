@@ -39,8 +39,9 @@ def get_resource(resource_path):
     )
 
 
-def content_to_tempfile(content):
-    temp = tempfile.mkstemp()
-    with open(temp[1], 'w') as f:
+def content_to_tempfile(content, mode='r+'):
+    temp = tempfile.NamedTemporaryFile(mode=mode, delete=False)
+    with open(temp.name, 'r+') as f:
         f.write(content)
-        return f.name
+    path = temp.name
+    return path

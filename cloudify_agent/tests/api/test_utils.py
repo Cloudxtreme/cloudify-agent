@@ -61,3 +61,10 @@ class TestUtils(BaseApiTestCase):
         )
         with open(tempfile) as f:
             self.assertEqual('content', f.read())
+
+    def test_run_script_from_temp_file(self):
+        content = '#!/bin/bash\necho success'
+        path = utils.content_to_tempfile(content)
+        os.system('chmod +x {0}'.format(path))
+        code = os.system(path)
+        self.assertEqual(0, code)
