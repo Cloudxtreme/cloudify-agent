@@ -62,12 +62,9 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             sudo_test_file = os.path.join(self.temp_folder, 'sudo-test')
             task_name = 'mock_plugin_sudo.tasks.run'
             args = [sudo_test_file]
-            self.logger.info('Sending task {0} with args {1}'
-                             .format(task_name, args))
             async = celery.send_task(name=task_name,
                                      queue=self.queue,
                                      args=args)
-            self.logger.info('AsyncResult: {0}'.format(async))
             async.get(timeout=5)
             self.assertTrue(os.path.exists(sudo_test_file))
         finally:
