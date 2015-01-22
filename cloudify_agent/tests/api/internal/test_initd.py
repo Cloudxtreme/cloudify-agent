@@ -265,26 +265,6 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
 
         self.assertRaises(RuntimeError, daemon.create)
 
-    def test_start_relocated(self):
-        if not travis():
-            raise RuntimeError('Error! This test cannot be executed '
-                               'outside of the travis CI '
-                               'system since it may corrupt '
-                               'your local virtualenv')
-        daemon = GenericLinuxDaemon(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            workdir=self.temp_folder,
-            relocated=True
-        )
-        daemon.create()
-        daemon.start()
-        self.assert_daemon_alive(self.queue)
-        self.assert_registered_tasks(daemon.queue)
-
     def test_start_with_error(self):
         daemon = GenericLinuxDaemon(
             name=self.name,

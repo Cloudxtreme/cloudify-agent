@@ -20,6 +20,7 @@ from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.tests.api import CLOUDIFY_STORAGE_FOLDER
 from cloudify_agent.tests.api import SudoLessLocalCommandRunner
 from cloudify_agent.tests.api import patch_unless_travis
+from cloudify_agent.tests.api import travis
 
 
 @patch_unless_travis('cloudify_agent.api.internal.daemon.factory.CLOUDIFY_AGENT_STORAGE',  # NOQA
@@ -49,6 +50,26 @@ class TestDaemonFactory(BaseApiTestCase):
                 'optional2': 'optional2'
             },
             daemon.optional_parameters)
+
+    def test_create_relocated(self):
+        if not travis():
+            raise RuntimeError('Error! This test cannot be executed '
+                               'outside of the travis CI '
+                               'system since it may corrupt '
+                               'your local virtualenv')
+        daemon = DaemonFactory.create(
+            process_management='init.d',
+            name='name',
+            queue='queue',
+            manager_ip='127.0.0.1',
+            agent_ip='127.0.0.1',
+            user='user',
+            relocated=True)
+        self.assertEqual('name', daemon.name)
+        self.assertEqual('queue', daemon.queue)
+        self.assertEqual('127.0.0.1', daemon.manager_ip)
+        self.assertEqual('127.0.0.1', daemon.agent_ip)
+        self.assertEqual('user', daemon.user)
 
     def test_save_load_delete(self):
 
