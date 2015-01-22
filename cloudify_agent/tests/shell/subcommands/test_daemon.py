@@ -23,7 +23,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     def test_create(self):
         self.assert_function_called(
-            'cloudify-agent daemon create --name=name '
+            'cloudify-agent daemon create --name=name --relocated '
             '--queue=queue --agent-ip=127.0.0.1 '
             '--manager-ip=127.0.0.1 --user={0}'.format(self.username),
             module=daemon,
@@ -40,7 +40,8 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
                 'broker_port': None,
                 'manager_port': None,
                 'autoscale': None,
-                'disable_requiretty': False
+                'disable_requiretty': False,
+                'relocated': True
             }
         )
 

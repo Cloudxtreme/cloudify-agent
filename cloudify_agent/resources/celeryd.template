@@ -20,7 +20,7 @@
 ### END INIT INFO
 
 # sourcing the configuration file
-. /etc/default/{{ daemon_name }}
+. {{ config_path }}
 
 # some commands work asyncronously, so we'll wait this many seconds
 SLEEP_SECONDS=5

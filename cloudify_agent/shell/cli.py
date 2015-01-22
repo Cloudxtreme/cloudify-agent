@@ -14,14 +14,14 @@
 #  * limitations under the License.
 
 import sys
-import click
 import logging
 import StringIO
 import traceback
 
+import click
 from celery import __main__
-from cloudify.utils import setup_default_logger
 
+from cloudify.utils import setup_default_logger
 from cloudify_agent.shell.subcommands import daemon
 
 
@@ -62,8 +62,12 @@ def _set_logger(debug):
 
     # we change the format of the api logging
     # to be more shell like.
-    from cloudify_agent.api.internal.base import LOGGER_NAME
-    setup_default_logger(LOGGER_NAME,
+    from cloudify_agent.api import api_logger
+    from cloudify_agent.api import daemon_logger
+    setup_default_logger(api_logger.name,
+                         level=level,
+                         fmt='%(message)s')
+    setup_default_logger(daemon_logger.name,
                          level=level,
                          fmt='%(message)s')
 

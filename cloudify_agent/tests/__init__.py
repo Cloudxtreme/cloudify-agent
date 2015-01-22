@@ -27,7 +27,7 @@ class BaseTestCase(testtools.TestCase):
     def setUp(self):
         super(BaseTestCase, self).setUp()
         self.logger = setup_default_logger(
-            'cloudify.agent.tests',
+            'cloudify-agent.tests',
             level=logging.DEBUG)
         self.username = getpass.getuser()
         self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
@@ -38,7 +38,3 @@ class BaseTestCase(testtools.TestCase):
     def tearDown(self):
         super(BaseTestCase, self).tearDown()
         os.chdir(self.currdir)
-
-    @classmethod
-    def setUpClass(cls):
-        super(BaseTestCase, cls).setUpClass()

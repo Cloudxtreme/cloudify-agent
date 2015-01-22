@@ -13,7 +13,7 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-from cloudify_agent.api.internal.base import DaemonFactory
+from cloudify_agent.api.internal.daemon.factory import DaemonFactory
 from cloudify_agent.api import defaults
 
 
@@ -32,8 +32,6 @@ def create(name,
 
     """
     Creates the necessary scripts and configuration files for the daemon.
-    This operation also saves the daemon to a file, allowing subsequent
-    calls to load the daemon by using `DaemonFactory.load(daemon_name)`.
 
     :param name: The daemon name. Must be unique.
     :param queue: The queue this daemon will listen to.
@@ -43,8 +41,6 @@ def create(name,
     :param process_management: The process management to use.
     :param optional_parameters: A dictionary containing any additional,
                                 non mandatory parameters.
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.create(
@@ -58,7 +54,6 @@ def create(name,
     )
     daemon.create()
     DaemonFactory.save(daemon)
-    return daemon
 
 
 def start(name,
@@ -71,15 +66,15 @@ def start(name,
     :param name: The name given to the daemon on `create`.
 
     :param interval:
+
         The interval in seconds to sleep when waiting
         for the daemon to be ready
 
     :param timeout:
+
         The timeout in seconds to wait for
         the daemon to be ready.
 
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
@@ -87,7 +82,6 @@ def start(name,
         interval=interval,
         timeout=timeout
     )
-    return daemon
 
 
 def stop(name,
@@ -107,8 +101,6 @@ def stop(name,
         The timeout in seconds to wait for
         the daemon to stop.
 
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
@@ -116,7 +108,6 @@ def stop(name,
         interval=interval,
         timeout=timeout
     )
-    return daemon
 
 
 def delete(name):
@@ -125,14 +116,11 @@ def delete(name):
     Deletes all daemon related files.
 
     :param name: The name given to the daemon on `create`.
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
     daemon.delete()
     DaemonFactory.delete(daemon)
-    return daemon
 
 
 def register(name, plugin):
@@ -142,13 +130,10 @@ def register(name, plugin):
     restart the daemon in order for these changes to take affect.
 
     :param name: The name given to the daemon on `create`.
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
     daemon.register(plugin)
-    return daemon
 
 
 def restart(name):
@@ -157,10 +142,7 @@ def restart(name):
     Restarts the daemon process.
 
     :param name: The name given to the daemon on `create`.
-    :return: The daemon instance.
-    :rtype: `cloudify_agent.api.daemons.Daemon`
     """
 
     daemon = DaemonFactory.load(name)
     daemon.restart()
-    return daemon

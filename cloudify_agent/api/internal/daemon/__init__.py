@@ -13,10 +13,6 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import logging
-
-from cloudify.utils import setup_default_logger
-
-
-api_logger = setup_default_logger('cloudify-agent.api', logging.INFO)
-daemon_logger = setup_default_logger('cloudify-agent.api.daemon', logging.INFO)
+# import all daemon concrete implementations
+# so that we can use Daemon.__subclasses__()
+from cloudify_agent.api.internal.daemon.initd import GenericLinuxDaemon  # NOQA\

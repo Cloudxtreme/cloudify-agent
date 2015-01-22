@@ -15,33 +15,52 @@
 
 import os
 
-from cloudify.utils import LocalCommandRunner
-
-from cloudify_agent.api.internal.initd import GenericLinuxDaemon
-from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify.celery import celery
 
+from cloudify_agent.api.internal.daemon.initd import GenericLinuxDaemon
+
+from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.tests import resources
+from cloudify_agent.tests.api import SudoLessLocalCommandRunner
+from cloudify_agent.tests.api import SCRIPT_DIR
+from cloudify_agent.tests.api import CONFIG_DIR
+from cloudify_agent.tests.api import patch_unless_travis
+from cloudify_agent.tests.api import travis
 
 
+def sudoless_start_command(daemon):
+    return '{0} start'.format(daemon.script_path)
+
+
+def sudoless_stop_command(daemon):
+    return '{0} stop'.format(daemon.script_path)
+
+
+@patch_unless_travis(
+    'cloudify_agent.api.internal.daemon.base.LocalCommandRunner',
+    SudoLessLocalCommandRunner)
+@patch_unless_travis(
+    'cloudify_agent.api.internal.daemon.initd.GenericLinuxDaemon.SCRIPT_DIR',
+    SCRIPT_DIR)
+@patch_unless_travis(
+    'cloudify_agent.api.internal.daemon.initd.GenericLinuxDaemon.CONFIG_DIR',
+    CONFIG_DIR)
+@patch_unless_travis(
+    'cloudify_agent.api.internal.daemon.initd.start_command',
+    sudoless_start_command)
+@patch_unless_travis(
+    'cloudify_agent.api.internal.daemon.initd.stop_command',
+    sudoless_stop_command)
 class TestGenericLinuxDaemon(BaseApiTestCase):
 
     PROCESS_MANAGEMENT = 'init.d'
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestGenericLinuxDaemon, cls).setUpClass()
-        if 'TRAVIS_BUILD_DIR' not in os.environ \
-                and 'FORCE_TESTS' not in os.environ:
-            raise RuntimeError(
-                'Error! These tests require sudo '
-                'permissions and may manipulate system wide files. '
-                'Therefore they are only executed on the travis CI system. '
-                'If you are ABSOLUTELY sure you wish to '
-                'run them on your local box, set the FORCE_TESTS '
-                'environment variable to bypass this restriction.')
-
     def test_create_disable_requiretty(self):
+        if not travis():
+            raise RuntimeError('Error! This test cannot be executed '
+                               'outside of the travis CI '
+                               'system since it may corrupt '
+                               'your local system files')
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -207,9 +226,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.create()
 
         # delete includes and config files
-        runner = LocalCommandRunner(self.logger)
-        runner.run('sudo rm {0}'.format(daemon.includes_file_path))
-        runner.run('sudo rm {0}'.format(daemon.config_path))
+        self.runner.sudo('rm {0}'.format(daemon.includes_file_path))
+        self.runner.sudo('rm {0}'.format(daemon.config_path))
 
         self.assertRaises(RuntimeError, daemon.create)
 
@@ -225,8 +243,8 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.create()
 
         # delete includes and script files
-        self.runner.run('sudo rm {0}'.format(daemon.includes_file_path))
-        self.runner.run('sudo rm {0}'.format(daemon.script_path))
+        self.runner.sudo('rm {0}'.format(daemon.includes_file_path))
+        self.runner.sudo('rm {0}'.format(daemon.script_path))
 
         self.assertRaises(RuntimeError, daemon.create)
 
@@ -242,10 +260,30 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.create()
 
         # delete config and script files
-        self.runner.run('sudo rm {0}'.format(daemon.config_path))
-        self.runner.run('sudo rm {0}'.format(daemon.script_path))
+        self.runner.sudo('rm {0}'.format(daemon.config_path))
+        self.runner.sudo('rm {0}'.format(daemon.script_path))
 
         self.assertRaises(RuntimeError, daemon.create)
+
+    def test_start_relocated(self):
+        if not travis():
+            raise RuntimeError('Error! This test cannot be executed '
+                               'outside of the travis CI '
+                               'system since it may corrupt '
+                               'your local virtualenv')
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            agent_ip='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            relocated=True
+        )
+        daemon.create()
+        daemon.start()
+        self.assert_daemon_alive(self.queue)
+        self.assert_registered_tasks(daemon.queue)
 
     def test_start_with_error(self):
         daemon = GenericLinuxDaemon(
@@ -264,7 +302,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         try:
             daemon.register('mock-plugin-error')
             try:
-                daemon.start()
+                daemon.start(timeout=5)
                 self.fail('Expected start operation to fail '
                           'due to bad import')
             except RuntimeError as e:

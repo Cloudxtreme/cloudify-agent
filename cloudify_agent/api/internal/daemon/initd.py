@@ -18,10 +18,9 @@ import time
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
-
 from cloudify_agent.api import utils
 from cloudify_agent.included_plugins import included_plugins
-from cloudify_agent.api.internal.base import Daemon
+from cloudify_agent.api.internal.daemon.base import Daemon
 from cloudify_agent.api import defaults
 
 
@@ -57,7 +56,7 @@ class GenericLinuxDaemon(Daemon):
     def start(self,
               interval=defaults.START_INTERVAL,
               timeout=defaults.STOP_TIMEOUT):
-        self._run('sudo service {0} start'.format(self.name))
+        self.runner.sudo(start_command(self))
         end_time = time.time() + timeout
         while time.time() < end_time:
             stats = self._get_worker_stats()
@@ -72,7 +71,7 @@ class GenericLinuxDaemon(Daemon):
     def stop(self,
              interval=defaults.STOP_TIMEOUT,
              timeout=defaults.STOP_TIMEOUT):
-        self._run('sudo service {0} stop'.format(self.name))
+        self.runner.sudo(stop_command(self))
         end_time = time.time() + timeout
         while time.time() < end_time:
             stats = self._get_worker_stats()
@@ -86,9 +85,9 @@ class GenericLinuxDaemon(Daemon):
 
     def delete(self):
         self._validate_delete()
-        self._run('sudo rm {0}'.format(self.script_path))
-        self._run('sudo rm {0}'.format(self.config_path))
-        self._run('sudo rm -rf {0}'.format(self.workdir))
+        self.runner.sudo('rm {0}'.format(self.script_path))
+        self.runner.sudo('rm {0}'.format(self.config_path))
+        self.runner.sudo('rm -rf {0}'.format(self.workdir))
 
     def register(self, plugin):
         plugin_paths = self._list_plugin_files(self.virtualenv,
@@ -105,7 +104,8 @@ class GenericLinuxDaemon(Daemon):
             f.write(new_includes)
 
     def restart(self):
-        self._run('sudo service {0} restart'.format(self.name))
+        self.stop()
+        self.start()
 
     @staticmethod
     def _list_plugin_files(virtualenv_path,
@@ -135,18 +135,6 @@ class GenericLinuxDaemon(Daemon):
                     module.replace('../', '')
                     .replace('/', '.').replace('.py', '').strip())
         return module_paths
-
-    def _run(self, command):
-
-        """
-        Runts the given command and uses the current logger
-        for output.
-
-        :param command: The command to run.
-        :return:
-        """
-        runner = LocalCommandRunner(logger=self.logger)
-        return runner.run(command)
 
     def _create_includes(self):
 
@@ -211,10 +199,11 @@ class GenericLinuxDaemon(Daemon):
 
         rendered = utils.rendered_template_to_tempfile(
             template_path='celeryd.template',
-            daemon_name=self.name
+            daemon_name=self.name,
+            config_path=self.config_path
         )
-        self._run('sudo cp {0} {1}'.format(rendered, self.script_path))
-        self._run('sudo chmod +x {0}'.format(self.script_path))
+        self.runner.sudo('cp {0} {1}'.format(rendered, self.script_path))
+        self.runner.sudo('chmod +x {0}'.format(self.script_path))
 
     def _create_config(self):
 
@@ -240,7 +229,7 @@ class GenericLinuxDaemon(Daemon):
             virtualenv_path=self.virtualenv
         )
 
-        self._run('sudo cp {0} {1}'.format(rendered, self.config_path))
+        self.runner.sudo('cp {0} {1}'.format(rendered, self.config_path))
 
     def _disable_requiretty(self):
 
@@ -257,8 +246,8 @@ class GenericLinuxDaemon(Daemon):
         disable_requiretty_script_path = utils.resource_to_tempfile(
             resource_path='disable-requiretty.sh'
         )
-        self._run('chmod +x {0}'.format(disable_requiretty_script_path))
-        self._run('sudo {0}'.format(disable_requiretty_script_path))
+        self.runner.run('chmod +x {0}'.format(disable_requiretty_script_path))
+        self.runner.sudo('{0}'.format(disable_requiretty_script_path))
 
     def _verify_no_celery_error(self):
 
@@ -285,3 +274,11 @@ class GenericLinuxDaemon(Daemon):
             destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         return stats
+
+
+def start_command(daemon):
+    return 'service {0} start'.format(daemon.name)
+
+
+def stop_command(daemon):
+    return 'service {0} stop'.format(daemon.name)

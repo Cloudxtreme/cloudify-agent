@@ -13,135 +13,79 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import os
-from cloudify_agent.api.internal import DAEMON_CONTEXT_DIR
+from mock import patch
 
 from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.api import daemon as api
 
-from cloudify_agent.api.internal.base import VIRTUALENV
 
-
+@patch('cloudify_agent.api.daemon.DaemonFactory')
 class TestApi(BaseApiTestCase):
 
-    @classmethod
-    def setUpClass(cls):
-        super(TestApi, cls).setUpClass()
-        if 'TRAVIS_BUILD_DIR' not in os.environ \
-                and 'FORCE_TESTS' not in os.environ:
-            raise RuntimeError(
-                'Error! These tests require sudo '
-                'permissions and may manipulate system wide files. '
-                'Therefore they are only executed on the travis CI system. '
-                'If you are ABSOLUTELY sure you wish to '
-                'run them on your local box, set the FORCE_TESTS '
-                'environment variable to bypass this restriction.')
-
-    def test_create(self):
+    def test_create(self, factory):
         api.create(
             name=self.name,
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            process_management='init.d'
+            process_management='Whatever'
         )
-        daemon_context = os.path.join(DAEMON_CONTEXT_DIR,
-                                      '{0}.json'.format(self.name))
-        self.assertTrue(os.path.exists(os.path.join(daemon_context)))
+        factory_create = factory.create
+        factory_save = factory.save
+        daemon = factory_create.return_value
 
-    def test_start(self):
-        api.create(
+        factory_create.assert_called_once_with(
             name=self.name,
             queue=self.queue,
             agent_ip='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
-            process_management='init.d'
+            process_management='Whatever'
         )
+        daemon.create.assert_called_once_with()
+        factory_save.assert_called_once_with(daemon)
+
+    def test_start(self, factory):
         api.start(self.name)
-        self.assert_daemon_alive(self.queue)
-        self.assert_registered_tasks(self.queue)
+        factory_load = factory.load
+        daemon = factory_load.return_value
 
-    def test_stop(self):
-        api.create(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            process_management='init.d'
+        factory_load.assert_called_once_with(self.name)
+        daemon.start.assert_called_once_with(
+            interval=1, timeout=15
         )
-        api.start(self.name)
+
+    def test_stop(self, factory):
         api.stop(self.name)
-        self.assert_daemon_dead(self.queue)
+        factory_load = factory.load
+        daemon = factory_load.return_value
 
-    def test_register(self):
-        from cloudify_agent.tests import resources
-        api.create(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            process_management='init.d'
+        factory_load.assert_called_once_with(self.name)
+        daemon.stop.assert_called_once_with(
+            interval=1, timeout=15
         )
-        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(VIRTUALENV,
-                                os.path.dirname(resources.__file__)),
-                        stdout_pipe=False)
-        try:
-            api.register(self.name, 'mock-plugin')
-            api.start(self.name)
-            self.assert_registered_tasks(
-                self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
-            )
-        finally:
-            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(VIRTUALENV),
-                            stdout_pipe=False)
 
-    def test_delete(self):
-        api.create(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            process_management='init.d'
-        )
-        api.start(self.name)
-        api.stop(self.name)
+    def test_register(self, factory):
+        api.register(self.name, 'mock-plugin')
+        factory_load = factory.load
+        daemon = factory_load.return_value
+
+        factory_load.assert_called_once_with(self.name)
+        daemon.register.assert_called_once_with('mock-plugin')
+
+    def test_delete(self, factory):
         api.delete(self.name)
-        daemon_context = os.path.join(DAEMON_CONTEXT_DIR,
-                                      '{0}.json'.format(self.name))
-        self.assertFalse(os.path.exists(os.path.join(daemon_context)))
+        factory_load = factory.load
+        daemon = factory_load.return_value
 
-    def test_restart(self):
-        from cloudify_agent.tests import resources
-        api.create(
-            name=self.name,
-            queue=self.queue,
-            agent_ip='127.0.0.1',
-            manager_ip='127.0.0.1',
-            user=self.username,
-            process_management='init.d'
-        )
-        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(VIRTUALENV,
-                                os.path.dirname(resources.__file__)),
-                        stdout_pipe=False)
-        api.start(self.name)
-        self.assert_registered_tasks(self.queue)
-        try:
-            api.register(self.name, 'mock-plugin')
-            api.restart(self.name)
-            self.assert_registered_tasks(
-                self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
-            )
-        finally:
-            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(VIRTUALENV),
-                            stdout_pipe=False)
+        factory_load.assert_called_once_with(self.name)
+        daemon.delete.assert_called_once_with()
+
+    def test_restart(self, factory):
+        api.restart(self.name)
+        factory_load = factory.load
+        daemon = factory_load.return_value
+
+        factory_load.assert_called_once_with(self.name)
+        daemon.restart.assert_called_once_with()

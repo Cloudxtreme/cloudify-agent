@@ -75,6 +75,14 @@ from cloudify_agent.shell import env
               .format(env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY),
               default=False,
               envvar=env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY)
+@click.option('--relocated/--no-relocated',
+              help='Indication that this virtualenv was relocated. '
+                   'If this option is passed, an auto-correction '
+                   'to the virtualenv shabang entries '
+                   'will be performed [{0}]'
+              .format(env.CLOUDIFY_RELOCATED),
+              default=False,
+              envvar=env.CLOUDIFY_RELOCATED)
 @click.option('--process-management',
               help='The process management system to use '
                    'when creating the daemon. [{0}]'

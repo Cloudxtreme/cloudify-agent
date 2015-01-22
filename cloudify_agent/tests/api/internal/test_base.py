@@ -14,72 +14,10 @@
 #  * limitations under the License.
 
 
-import uuid
 import os
 
-from cloudify_agent.api.internal.base import DaemonFactory
-from cloudify_agent.api.internal.base import Daemon
+from cloudify_agent.api.internal.daemon.base import Daemon
 from cloudify_agent.tests.api import BaseApiTestCase
-
-
-class TestDaemonFactory(BaseApiTestCase):
-
-    def test_create(self):
-        daemon = DaemonFactory.create(
-            process_management='init.d',
-            name='name',
-            queue='queue',
-            manager_ip='127.0.0.1',
-            agent_ip='127.0.0.1',
-            user='user',
-            optional1='optional1',
-            optional2='optional2')
-        self.assertEqual('name', daemon.name)
-        self.assertEqual('queue', daemon.queue)
-        self.assertEqual('127.0.0.1', daemon.manager_ip)
-        self.assertEqual('127.0.0.1', daemon.agent_ip)
-        self.assertEqual('user', daemon.user)
-        self.assertEqual(
-            {
-                'optional1': 'optional1',
-                'optional2': 'optional2'
-            },
-            daemon.optional_parameters)
-
-    def test_save_load_delete(self):
-
-        name = 'name-{0}'.format(str(uuid.uuid4())[0:4])
-        daemon = DaemonFactory.create(
-            process_management='init.d',
-            name=name,
-            queue='queue',
-            manager_ip='127.0.0.1',
-            agent_ip='127.0.0.1',
-            user='user',
-            optional1='optional1',
-            optional2='optional2')
-
-        DaemonFactory.save(daemon)
-        loaded = DaemonFactory.load(name)
-        self.assertEqual('init.d', loaded.PROCESS_MANAGEMENT)
-        self.assertEqual(name, loaded.name)
-        self.assertEqual('queue', loaded.queue)
-        self.assertEqual('127.0.0.1', loaded.manager_ip)
-        self.assertEqual('127.0.0.1', loaded.agent_ip)
-        self.assertEqual('user', loaded.user)
-        self.assertEqual(
-            {
-                'optional1': 'optional1',
-                'optional2': 'optional2'
-            },
-            loaded.optional_parameters)
-        DaemonFactory.delete(daemon)
-        self.assertRaises(IOError, DaemonFactory.load, daemon)
-
-    def test_load_non_existing(self):
-        self.assertRaises(IOError,
-                          DaemonFactory.load,
-                          'non_existing_name')
 
 
 class TestDaemon(BaseApiTestCase):

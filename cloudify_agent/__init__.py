@@ -12,3 +12,12 @@
 #  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
+
+import os
+import sys
+from cloudify.utils import setup_default_logger
+
+VIRTUALENV = os.path.dirname(os.path.dirname(sys.executable))
+CLOUDIFY_AGENT_STORAGE = '/var/lib/cloudify-agent'
+
+global_logger = setup_default_logger('cloudify-agent')

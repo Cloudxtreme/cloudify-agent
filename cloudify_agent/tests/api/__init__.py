@@ -14,7 +14,11 @@
 #  * limitations under the License.
 
 import uuid
+import os
 import logging
+import shutil
+from mock import _get_target
+from mock import patch
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
@@ -45,29 +49,77 @@ BUILT_IN_TASKS = [
     'windows_plugin_installer.tasks.install'
 ]
 
+CLOUDIFY_STORAGE_FOLDER = '/tmp/var/lib/docker'
+SCRIPT_DIR = '/tmp/etc/init.d'
+CONFIG_DIR = '/tmp/etc/default'
+
+
+class SudoLessLocalCommandRunner(LocalCommandRunner):
+
+    """
+    Command runner that runs `sudo` exactly the
+    same as `run`. (i.e no 'sudo' prefix)
+
+    """
+
+    def sudo(self, command,
+             exit_on_failure=True,
+             stdout_pipe=True,
+             stderr_pipe=True):
+        return super(SudoLessLocalCommandRunner, self).run(
+            command,
+            exit_on_failure,
+            stdout_pipe,
+            stderr_pipe
+        )
+
+
+def travis():
+    return 'TRAVIS_BUILD_DIR' in os.environ
+
+
+def patch_unless_travis(target, new):
+
+    if not travis():
+        return patch(target, new)
+    else:
+        getter, attribute = _get_target(target)
+        return patch(target, getattr(getter(), attribute))
+
 
 class BaseApiTestCase(BaseTestCase):
-
-    @classmethod
-    def setUpClass(cls):
-        super(BaseApiTestCase, cls).setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super(BaseApiTestCase, cls).tearDownClass()
 
     def setUp(self):
         super(BaseApiTestCase, self).setUp()
         self.name = 'cloudify-agent-{0}'.format(str(uuid.uuid4())[0:4])
         self.queue = '{0}-queue'.format(self.name)
-        self.runner = LocalCommandRunner(self.logger)
-        logging.getLogger('cloudify.agent.api.daemon').setLevel(logging.DEBUG)
+        if travis():
+            # travis CI can run sudo commands
+            self.runner = LocalCommandRunner(self.logger)
+        else:
+            # when running locally, avoid sudo
+            self.runner = SudoLessLocalCommandRunner(self.logger)
+        self._smakedirs(CLOUDIFY_STORAGE_FOLDER)
+        self._smakedirs(CONFIG_DIR)
+        self._smakedirs(SCRIPT_DIR)
+        logging.getLogger('cloudify-agent.api.daemon').setLevel(logging.DEBUG)
 
     def tearDown(self):
         super(BaseApiTestCase, self).tearDown()
+        self._srmtree(CLOUDIFY_STORAGE_FOLDER)
+        self._srmtree(CONFIG_DIR)
+        self._srmtree(SCRIPT_DIR)
         pong = celery.control.ping()
         if pong:
             self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
+
+    def _smakedirs(self, dirs):
+        if not os.path.exists(dirs):
+            os.makedirs(dirs)
+
+    def _srmtree(self, tree):
+        if os.path.exists(tree):
+            shutil.rmtree(tree)
 
     def assert_registered_tasks(self, queue, additional_tasks=None):
         if not additional_tasks:

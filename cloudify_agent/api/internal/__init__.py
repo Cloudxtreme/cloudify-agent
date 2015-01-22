@@ -12,22 +12,3 @@
 #  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
-
-import os
-
-from cloudify.utils import LocalCommandRunner
-
-
-DAEMON_CONTEXT_DIR = '/var/lib/cloudify-agent'
-
-# create the state folder if it doesnt exist
-if not os.path.exists(DAEMON_CONTEXT_DIR):
-    LocalCommandRunner().run(
-        'sudo mkdir {0}'
-        .format(DAEMON_CONTEXT_DIR)
-    )
-
-
-# import all daemon concrete implementations
-# so that we can use Daemon.__subclasses__()
-from cloudify_agent.api.internal.initd import GenericLinuxDaemon  # NOQA
