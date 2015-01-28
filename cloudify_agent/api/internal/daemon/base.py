@@ -53,8 +53,10 @@ class Daemon(object):
             'broker_port') or defaults.BROKER_PORT
         self.manager_port = optional_parameters.get(
             'manager_port') or defaults.MANAGER_PORT
-        self.autoscale = optional_parameters.get(
-            'autoscale') or defaults.AUTOSCALE
+        self.min_workers = optional_parameters.get(
+            'min_workers') or defaults.MIN_WORKERS
+        self.max_workers = optional_parameters.get(
+            'max_workers') or defaults.MAX_WORKERS
         self.disable_requiretty = optional_parameters.get(
             'disable_requiretty') or defaults.DISABLE_REQUIRETTY
         self.workdir = optional_parameters.get(

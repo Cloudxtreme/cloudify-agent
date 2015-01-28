@@ -18,8 +18,9 @@ import time
 
 from cloudify.celery import celery
 from cloudify.utils import LocalCommandRunner
-from cloudify_agent.api import utils
+
 from cloudify_agent.included_plugins import included_plugins
+from cloudify_agent.api import utils
 from cloudify_agent.api.internal.daemon.base import Daemon
 from cloudify_agent.api import defaults
 
@@ -177,6 +178,20 @@ class GenericLinuxDaemon(Daemon):
             raise RuntimeError('Cannot create daemon {0}. {1} already exists.'
                                .format(self.name, self.includes_file_path))
 
+        if not str(self.min_workers).isdigit():
+            raise RuntimeError('min_workers is supposed to be a number '
+                               'but is: {0}'.format(self.min_workers))
+        if not str(self.max_workers).isdigit():
+            raise RuntimeError('max_workers is supposed to be a number '
+                               'but is: {0}'.format(self.max_workers))
+        min_workers = int(self.min_workers)
+        max_workers = int(self.max_workers)
+        if int(min_workers) > int(max_workers):
+            raise RuntimeError(
+                'min_workers cannot be greater than max_workers '
+                '[min_workers={0}, max_workers={1}]'
+                .format(min_workers, max_workers))
+
     def _validate_delete(self):
 
         """
@@ -224,7 +239,8 @@ class GenericLinuxDaemon(Daemon):
             broker_ip=self.broker_ip,
             broker_port=self.broker_port,
             user=self.user,
-            autoscale=self.autoscale,
+            min_workers=self.min_workers,
+            max_workers=self.max_workers,
             includes_file_path=self.includes_file_path,
             virtualenv_path=self.virtualenv
         )

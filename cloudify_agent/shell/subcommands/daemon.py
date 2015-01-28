@@ -65,11 +65,16 @@ from cloudify_agent.shell import env
               help='The manager REST gateway port to connect to. [{0}]'
                    .format(env.CLOUDIFY_MANAGER_PORT),
               envvar=env.CLOUDIFY_MANAGER_PORT)
-@click.option('--autoscale',
-              help='Autoscale parameters in the form of '
-                   '<minimum,maximum> (e.g 2,5). [{0}]'
-                   .format(env.CLOUDIFY_DAEMON_AUTOSCALE),
-              envvar=env.CLOUDIFY_DAEMON_AUTOSCALE)
+@click.option('--min_workers',
+              help='Minimum number of workers for '
+                   'the autoscale configuration. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_MIN_WORKERS),
+              envvar=env.CLOUDIFY_DAEMON_MIN_WORKERS)
+@click.option('--max_workers',
+              help='Maximum number of workers for '
+                   'the autoscale configuration. [{0}]'
+              .format(env.CLOUDIFY_DAEMON_MAX_WORKERS),
+              envvar=env.CLOUDIFY_DAEMON_MAX_WORKERS)
 @click.option('--disable-requiretty/--no-disable-requiretty',
               help='Disables the requiretty directive in the sudoers file'
               .format(env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY),

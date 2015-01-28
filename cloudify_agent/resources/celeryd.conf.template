@@ -26,4 +26,4 @@ CELERYD_ENV_DIR="{{ virtualenv_path }}"
 CELERYD_MULTI="${CELERYD_ENV_DIR}/bin/celeryd-multi"
 CELERYD_LOG_LEVEL="debug"
 CELERY_INCLUDES=$(cat {{ includes_file_path }})
-CELERYD_OPTS="--events -Q ${WORKER_QUEUE} --include=${CELERY_INCLUDES} --hostname=${WORKER_QUEUE} --autoscale={{ autoscale }} --maxtasksperchild=10"
+CELERYD_OPTS="--events -Q ${WORKER_QUEUE} --include=${CELERY_INCLUDES} --hostname=${WORKER_QUEUE} --autoscale={{ min_workers }},{{ max_workers }} --maxtasksperchild=10"

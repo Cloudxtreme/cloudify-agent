@@ -39,7 +39,8 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
                 'broker_ip': None,
                 'broker_port': None,
                 'manager_port': None,
-                'autoscale': None,
+                'min_workers': None,
+                'max_workers': None,
                 'disable_requiretty': False,
                 'relocated': True
             }
