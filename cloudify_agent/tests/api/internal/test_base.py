@@ -41,5 +41,8 @@ class TestDaemon(BaseApiTestCase):
     def test_default_manager_port(self):
         self.assertEqual(80, self.daemon.manager_port)
 
-    def test_default_autoscale(self):
-        self.assertEqual('0,5', self.daemon.autoscale)
+    def test_default_min_workers(self):
+        self.assertEqual(0, self.daemon.min_workers)
+
+    def test_default_max_workers(self):
+        self.assertEqual(5, self.daemon.max_workers)
