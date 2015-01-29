@@ -42,9 +42,11 @@ setup(
     author_email='cloudify@gigaspaces.com',
     packages=[
         'cloudify_agent',
+        'cloudify_agent.api',
+        'cloudify_agent.api.internal'
         'cloudify_agent.shell',
-        'cloudify_agent.shell.subcommands',
-        'cloudify_agent.api'],
+        'cloudify_agent.shell.subcommands'
+    ],
     package_data={
         'cloudify_agent': [
             'resources/celeryd.conf.template',
