@@ -117,8 +117,7 @@ def create(name,
         user=user,
         **optional_parameters
     )
-    click.secho('Successfully created daemon: {0}'
-                .format(name), fg='green')
+    click.echo('Successfully created daemon: {0}'.format(name))
 
 
 @click.command()
@@ -140,9 +139,8 @@ def register(name, plugin):
 
     click.echo('Registering...')
     daemon_api.register(name, plugin)
-    click.secho('Successfully registered {0} with daemon: {1}'
-                .format(plugin, name),
-                fg='green')
+    click.echo('Successfully registered {0} with daemon: {1}'
+               .format(plugin, name))
 
 
 @click.command()
@@ -168,8 +166,7 @@ def start(name, interval, timeout):
 
     click.echo('Starting...')
     daemon_api.start(name, interval, timeout)
-    click.secho('Successfully started daemon: {0}'
-                .format(name), fg='green')
+    click.echo('Successfully started daemon: {0}'.format(name))
 
 
 @click.command()
@@ -195,8 +192,7 @@ def stop(name, interval, timeout):
 
     click.echo('Stopping...')
     daemon_api.stop(name, interval, timeout)
-    click.secho('Successfully stopped daemon: {0}'
-                .format(name), fg='green')
+    click.secho('Successfully stopped daemon: {0}'.format(name))
 
 
 @click.command()
@@ -214,8 +210,7 @@ def restart(name):
 
     click.echo('Restarting...')
     daemon_api.restart(name)
-    click.secho('Successfully restarted daemon: {0}'
-                .format(name), fg='green')
+    click.echo('Successfully restarted daemon: {0}'.format(name))
 
 
 @click.command()
@@ -233,5 +228,4 @@ def delete(name):
 
     click.echo('Deleting...')
     daemon_api.delete(name)
-    click.secho('Successfully deleted daemon: {0}'
-                .format(name), fg='green')
+    click.secho('Successfully deleted daemon: {0}'.format(name))

@@ -78,7 +78,6 @@ def _set_exception_hook(debug):
         output = '[FATAL] {0}'.format(str(value))
 
         if debug:
-            # print traceback if verbose
             s_traceback = StringIO.StringIO()
             traceback.print_exception(
                 etype=tpe,
@@ -88,7 +87,7 @@ def _set_exception_hook(debug):
             output = s_traceback.getvalue()
             click.echo(output)
         else:
-            click.secho(output, fg='red')
+            click.echo(output)
         return output
 
     sys.excepthook = exception_hook

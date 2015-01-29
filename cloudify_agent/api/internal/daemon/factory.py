@@ -16,6 +16,7 @@
 import os
 import json
 import tempfile
+from cloudify.exceptions import CommandExecutionException
 
 from cloudify.utils import LocalCommandRunner
 
@@ -63,10 +64,8 @@ class DaemonFactory(object):
                 runner.run('unlink {0}'.format(link_path))
                 runner.run('ln -s {0}/{1} {2}'
                            .format(VIRTUALENV, link, link_path))
-            except Exception as e:
-                api_logger.warn('Error processing link: {0} '
-                                '[error={1}] - ignoring..'
-                                .format(link_path, str(e)))
+            except CommandExecutionException:
+                pass
 
         bin_dir = '{0}/bin'.format(VIRTUALENV)
 
