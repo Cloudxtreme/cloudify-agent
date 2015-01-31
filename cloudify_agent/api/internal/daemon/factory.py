@@ -62,6 +62,11 @@ class DaemonFactory(object):
             path = os.path.join(bin_dir, executable)
             if not os.path.isfile(path):
                 continue
+            if os.path.islink(path):
+                continue
+            basename = os.path.basename(path)
+            if basename == 'python':
+                continue
             with open(path) as f:
                 lines = f.read().split(os.linesep)
                 if lines[0].endswith('/bin/python'):
