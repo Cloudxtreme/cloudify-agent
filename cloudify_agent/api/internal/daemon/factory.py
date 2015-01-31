@@ -77,7 +77,7 @@ class DaemonFactory(object):
                 lines = f.read().split(os.linesep)
                 if lines[0].endswith('/bin/python'):
                     lines[0] = '#!{0}/python'.format(bin_dir)
-            with open(executable, 'w') as f:
+            with open(path, 'w') as f:
                 f.write(os.linesep.join(lines))
 
     @staticmethod
