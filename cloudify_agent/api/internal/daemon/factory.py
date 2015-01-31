@@ -56,17 +56,6 @@ class DaemonFactory(object):
 
         """
 
-        runner = LocalCommandRunner()
-
-        for link in ['archives', 'bin', 'include', 'lib']:
-            link_path = '{0}/local/{1}'.format(VIRTUALENV, link)
-            try:
-                runner.run('unlink {0}'.format(link_path))
-                runner.run('ln -s {0}/{1} {2}'
-                           .format(VIRTUALENV, link, link_path))
-            except CommandExecutionException:
-                pass
-
         bin_dir = '{0}/bin'.format(VIRTUALENV)
 
         for executable in os.listdir(bin_dir):
@@ -79,6 +68,17 @@ class DaemonFactory(object):
                     lines[0] = '#!{0}/python'.format(bin_dir)
             with open(path, 'w') as f:
                 f.write(os.linesep.join(lines))
+
+        runner = LocalCommandRunner()
+
+        for link in ['archives', 'bin', 'include', 'lib']:
+            link_path = '{0}/local/{1}'.format(VIRTUALENV, link)
+            try:
+                runner.run('unlink {0}'.format(link_path))
+                runner.run('ln -s {0}/{1} {2}'
+                           .format(VIRTUALENV, link, link_path))
+            except CommandExecutionException:
+                pass
 
     @staticmethod
     def create(process_management,
