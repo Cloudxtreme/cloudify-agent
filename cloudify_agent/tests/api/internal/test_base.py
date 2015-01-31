@@ -27,7 +27,7 @@ class TestDaemon(BaseApiTestCase):
         self.daemon = Daemon(
             name=None,
             queue=None,
-            agent_ip=None,
+            host=None,
             manager_ip=None,
             user=None
         )

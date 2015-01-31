@@ -24,7 +24,7 @@ Public API for a Daemon's lifecycle.
 
 def create(name,
            queue,
-           agent_ip,
+           host,
            manager_ip,
            user,
            process_management,
@@ -48,7 +48,7 @@ def create(name,
         name=name,
         queue=queue,
         manager_ip=manager_ip,
-        agent_ip=agent_ip,
+        host=host,
         user=user,
         **optional_parameters
     )

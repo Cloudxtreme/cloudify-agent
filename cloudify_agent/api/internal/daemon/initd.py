@@ -32,10 +32,10 @@ class GenericLinuxDaemon(Daemon):
     PROCESS_MANAGEMENT = 'init.d'
 
     def __init__(self,
-                 name, queue, agent_ip, manager_ip, user,
+                 name, queue, host, manager_ip, user,
                  **optional_parameters):
         super(GenericLinuxDaemon, self).__init__(
-            name, queue, agent_ip, manager_ip, user,
+            name, queue, host, manager_ip, user,
             **optional_parameters)
 
         # init.d specific configuration
@@ -127,7 +127,7 @@ class GenericLinuxDaemon(Daemon):
         files = runner.run(
             '{0}/bin/pip show -f {1}'
             .format(virtualenv_path, plugin_name)
-        ).std_out.splitlines()
+        ).output.splitlines()
         for module in files:
             if module.endswith('.py') and '__init__' not in module:
                 # the files paths are relative to the
@@ -235,7 +235,7 @@ class GenericLinuxDaemon(Daemon):
             workdir=self.workdir,
             manager_ip=self.manager_ip,
             manager_port=self.manager_port,
-            agent_ip=self.agent_ip,
+            host=self.host,
             broker_ip=self.broker_ip,
             broker_port=self.broker_port,
             user=self.user,

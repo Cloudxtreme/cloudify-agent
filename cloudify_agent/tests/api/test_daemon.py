@@ -26,7 +26,7 @@ class TestApi(BaseApiTestCase):
         api.create(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             process_management='Whatever'
@@ -38,7 +38,7 @@ class TestApi(BaseApiTestCase):
         factory_create.assert_called_once_with(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             process_management='Whatever'

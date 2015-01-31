@@ -4,7 +4,7 @@ CELERY_WORK_DIR="{{ workdir }}"
 
 # Cloudify plugins environment variables
 export MANAGER_IP="{{ manager_ip }}"
-export AGENT_IP="{{ agent_ip }}"
+export AGENT_IP="{{ host }}"
 export MANAGER_REST_PORT="{{ manager_port }}"
 export MANAGER_FILE_SERVER_URL="http://${MANAGER_IP}:53229"
 export MANAGER_FILE_SERVER_BLUEPRINTS_ROOT_URL="${MANAGER_FILE_SERVER_URL}/blueprints"

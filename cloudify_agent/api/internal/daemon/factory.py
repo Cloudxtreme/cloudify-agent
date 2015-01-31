@@ -85,7 +85,7 @@ class DaemonFactory(object):
                name,
                queue,
                manager_ip,
-               agent_ip,
+               host,
                user,
                **optional_parameters):
         if optional_parameters.get('relocated'):
@@ -95,7 +95,7 @@ class DaemonFactory(object):
             name=name,
             queue=queue,
             manager_ip=manager_ip,
-            agent_ip=agent_ip,
+            host=host,
             user=user,
             **optional_parameters
         )
@@ -111,7 +111,7 @@ class DaemonFactory(object):
                           .format(daemon_path))
         runner = LocalCommandRunner(logger=api_logger)
         contents = runner.sudo('cat {0}'
-                               .format(daemon_path)).std_out
+                               .format(daemon_path)).output
         daemon_as_json = json.loads(contents)
         process_management = daemon_as_json.pop('process_management')
         daemon = DaemonFactory._find_implementation(process_management)
@@ -135,7 +135,7 @@ class DaemonFactory(object):
                 'name': daemon.name,
                 'queue': daemon.queue,
                 'manager_ip': daemon.manager_ip,
-                'agent_ip': daemon.agent_ip,
+                'host': daemon.host,
                 'user': daemon.user,
                 'process_management': daemon.PROCESS_MANAGEMENT
             }

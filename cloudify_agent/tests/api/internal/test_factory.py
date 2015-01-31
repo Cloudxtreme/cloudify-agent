@@ -35,14 +35,14 @@ class TestDaemonFactory(BaseApiTestCase):
             name='name',
             queue='queue',
             manager_ip='127.0.0.1',
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             user='user',
             optional1='optional1',
             optional2='optional2')
         self.assertEqual('name', daemon.name)
         self.assertEqual('queue', daemon.queue)
         self.assertEqual('127.0.0.1', daemon.manager_ip)
-        self.assertEqual('127.0.0.1', daemon.agent_ip)
+        self.assertEqual('127.0.0.1', daemon.host)
         self.assertEqual('user', daemon.user)
         self.assertEqual(
             {
@@ -62,13 +62,13 @@ class TestDaemonFactory(BaseApiTestCase):
             name='name',
             queue='queue',
             manager_ip='127.0.0.1',
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             user='user',
             relocated=True)
         self.assertEqual('name', daemon.name)
         self.assertEqual('queue', daemon.queue)
         self.assertEqual('127.0.0.1', daemon.manager_ip)
-        self.assertEqual('127.0.0.1', daemon.agent_ip)
+        self.assertEqual('127.0.0.1', daemon.host)
         self.assertEqual('user', daemon.user)
 
     def test_save_load_delete(self):
@@ -79,7 +79,7 @@ class TestDaemonFactory(BaseApiTestCase):
             name=name,
             queue='queue',
             manager_ip='127.0.0.1',
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             user='user',
             optional1='optional1',
             optional2='optional2')
@@ -90,7 +90,7 @@ class TestDaemonFactory(BaseApiTestCase):
         self.assertEqual(name, loaded.name)
         self.assertEqual('queue', loaded.queue)
         self.assertEqual('127.0.0.1', loaded.manager_ip)
-        self.assertEqual('127.0.0.1', loaded.agent_ip)
+        self.assertEqual('127.0.0.1', loaded.host)
         self.assertEqual('user', loaded.user)
         self.assertEqual(
             {

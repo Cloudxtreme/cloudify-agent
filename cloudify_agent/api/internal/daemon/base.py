@@ -34,7 +34,7 @@ class Daemon(object):
     def __init__(self,
                  name,
                  queue,
-                 agent_ip,
+                 host,
                  manager_ip,
                  user,
                  **optional_parameters):
@@ -42,7 +42,7 @@ class Daemon(object):
         # Mandatory arguments
         self.name = name
         self.queue = queue
-        self.agent_ip = agent_ip
+        self.host = host
         self.manager_ip = manager_ip
         self.user = user
 

@@ -64,7 +64,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder,
@@ -95,7 +95,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -108,7 +108,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -124,7 +124,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -138,7 +138,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -152,7 +152,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -178,7 +178,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -206,7 +206,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -218,7 +218,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -235,7 +235,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -252,7 +252,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -269,7 +269,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -296,7 +296,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -311,7 +311,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -328,7 +328,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -344,7 +344,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -362,7 +362,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon1 = GenericLinuxDaemon(
             name=name1,
             queue=queue1,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -378,7 +378,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon2 = GenericLinuxDaemon(
             name=name2,
             queue=queue2,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder
@@ -393,7 +393,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
-            agent_ip='127.0.0.1',
+            host='127.0.0.1',
             manager_ip='127.0.0.1',
             user=self.username,
             workdir=self.temp_folder

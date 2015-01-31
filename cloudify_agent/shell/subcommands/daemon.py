@@ -31,11 +31,11 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_DAEMON_QUEUE),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_QUEUE)
-@click.option('--agent-ip',
+@click.option('--host',
               help='A resolvable IP address for this host. [{0}]'
-                   .format(env.CLOUDIFY_AGENT_IP),
+                   .format(env.CLOUDIFY_AGENT_HOST),
               required=True,
-              envvar=env.CLOUDIFY_AGENT_IP)
+              envvar=env.CLOUDIFY_AGENT_HOST)
 @click.option('--manager-ip',
               help='The manager IP to connect to. [{0}]'
                    .format(env.CLOUDIFY_MANAGER_IP),
@@ -65,12 +65,12 @@ from cloudify_agent.shell import env
               help='The manager REST gateway port to connect to. [{0}]'
                    .format(env.CLOUDIFY_MANAGER_PORT),
               envvar=env.CLOUDIFY_MANAGER_PORT)
-@click.option('--min_workers',
+@click.option('--min-workers',
               help='Minimum number of workers for '
                    'the autoscale configuration. [{0}]'
               .format(env.CLOUDIFY_DAEMON_MIN_WORKERS),
               envvar=env.CLOUDIFY_DAEMON_MIN_WORKERS)
-@click.option('--max_workers',
+@click.option('--max-workers',
               help='Maximum number of workers for '
                    'the autoscale configuration. [{0}]'
               .format(env.CLOUDIFY_DAEMON_MAX_WORKERS),
@@ -97,7 +97,7 @@ from cloudify_agent.shell import env
               envvar=env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT)
 def create(name,
            queue,
-           agent_ip,
+           host,
            manager_ip,
            user,
            **optional_parameters):
@@ -112,7 +112,7 @@ def create(name,
     daemon_api.create(
         name=name,
         queue=queue,
-        agent_ip=agent_ip,
+        host=host,
         manager_ip=manager_ip,
         user=user,
         **optional_parameters

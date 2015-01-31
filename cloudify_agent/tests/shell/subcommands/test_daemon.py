@@ -24,14 +24,14 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
     def test_create(self):
         self.assert_function_called(
             'cloudify-agent daemon create --name=name --relocated '
-            '--queue=queue --agent-ip=127.0.0.1 '
+            '--queue=queue --host=127.0.0.1 '
             '--manager-ip=127.0.0.1 --user={0}'.format(self.username),
             module=daemon,
             function_name='create',
             kwargs={
                 'name': 'name',
                 'queue': 'queue',
-                'agent_ip': '127.0.0.1',
+                'host': '127.0.0.1',
                 'manager_ip': '127.0.0.1',
                 'user': self.username,
                 'process_management': 'init.d',
