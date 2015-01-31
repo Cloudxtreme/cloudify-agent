@@ -146,6 +146,7 @@ class DaemonFactory(object):
             }
             props.update(**daemon.optional_parameters)
             json.dump(props, f, indent=2)
+            f.write(os.linesep)
         runner.sudo('cp {0} {1}'.format(temp[1], daemon_path))
 
     @staticmethod
