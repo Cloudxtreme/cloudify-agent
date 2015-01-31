@@ -16,7 +16,7 @@
 import os
 import time
 
-from cloudify.celery import celery
+from celery import Celery
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.included_plugins import included_plugins
@@ -45,6 +45,9 @@ class GenericLinuxDaemon(Daemon):
             self.workdir,
             '{0}-includes'.format(self.name)
         )
+
+        self.celery = Celery(broker=self.broker_url,
+                             backend=self.broker_url)
 
     def create(self):
         self._validate_create()
@@ -236,8 +239,7 @@ class GenericLinuxDaemon(Daemon):
             manager_ip=self.manager_ip,
             manager_port=self.manager_port,
             host=self.host,
-            broker_ip=self.broker_ip,
-            broker_port=self.broker_port,
+            broker_url=self.broker_url,
             user=self.user,
             min_workers=self.min_workers,
             max_workers=self.max_workers,
@@ -286,7 +288,7 @@ class GenericLinuxDaemon(Daemon):
 
     def _get_worker_stats(self):
         destination = 'celery.{0}'.format(self.queue)
-        inspect = celery.control.inspect(
+        inspect = self.celery.control.inspect(
             destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         return stats

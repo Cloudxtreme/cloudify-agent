@@ -61,6 +61,11 @@ from cloudify_agent.shell import env
               help='The broker port to connect to. [{0}]'
                    .format(env.CLOUDIFY_BROKER_PORT),
               envvar=env.CLOUDIFY_BROKER_PORT)
+@click.option('--broker-url',
+              help='The broker url to connect to. If this option is specified, '
+                   'the broker-ip and broker-port options are ignored. [{0}]'
+              .format(env.CLOUDIFY_BROKER_URL),
+              envvar=env.CLOUDIFY_BROKER_URL)
 @click.option('--manager-port',
               help='The manager REST gateway port to connect to. [{0}]'
                    .format(env.CLOUDIFY_MANAGER_PORT),

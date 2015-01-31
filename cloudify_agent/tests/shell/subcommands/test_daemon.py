@@ -38,6 +38,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
                 'workdir': None,
                 'broker_ip': None,
                 'broker_port': None,
+                'broker_url': None,
                 'manager_port': None,
                 'min_workers': None,
                 'max_workers': None,

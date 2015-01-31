@@ -61,8 +61,12 @@ class Daemon(object):
             'disable_requiretty') or defaults.DISABLE_REQUIRETTY
         self.workdir = optional_parameters.get(
             'workdir') or os.getcwd()
+        self.broker_url = optional_parameters.get(
+            'broker_url') or defaults.BROKER_URL.format(
+            self.broker_ip,
+            self.broker_port)
         self.relocated = optional_parameters.get(
-            'relocated') or False
+            'relocated') or defaults.RELOCATED
 
         # configure logger
         self.logger = daemon_logger

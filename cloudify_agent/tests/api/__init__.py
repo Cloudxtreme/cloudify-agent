@@ -20,7 +20,7 @@ import shutil
 from mock import _get_target
 from mock import patch
 
-from cloudify.celery import celery
+from celery import Celery
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.tests import BaseTestCase
@@ -65,12 +65,14 @@ class SudoLessLocalCommandRunner(LocalCommandRunner):
     def sudo(self, command,
              exit_on_failure=True,
              stdout_pipe=True,
-             stderr_pipe=True):
+             stderr_pipe=True,
+             cwd=None):
         return super(SudoLessLocalCommandRunner, self).run(
             command,
             exit_on_failure,
             stdout_pipe,
-            stderr_pipe
+            stderr_pipe,
+            cwd
         )
 
 
@@ -103,13 +105,15 @@ class BaseApiTestCase(BaseTestCase):
         self._smakedirs(CONFIG_DIR)
         self._smakedirs(SCRIPT_DIR)
         logging.getLogger('cloudify-agent.api.daemon').setLevel(logging.DEBUG)
+        self.celery = Celery(broker='amqp://',
+                             backend='amqp://')
 
     def tearDown(self):
         super(BaseApiTestCase, self).tearDown()
         self._srmtree(CLOUDIFY_STORAGE_FOLDER)
         self._srmtree(CONFIG_DIR)
         self._srmtree(SCRIPT_DIR)
-        pong = celery.control.ping()
+        pong = self.celery.control.ping()
         if pong:
             self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
 
@@ -125,7 +129,7 @@ class BaseApiTestCase(BaseTestCase):
         if not additional_tasks:
             additional_tasks = set()
         destination = 'celery.{0}'.format(queue)
-        inspect = celery.control.inspect(destination=[destination])
+        inspect = self.celery.control.inspect(destination=[destination])
         registered = inspect.registered() or {}
 
         def include(task):
@@ -138,12 +142,12 @@ class BaseApiTestCase(BaseTestCase):
 
     def assert_daemon_alive(self, queue):
         destination = 'celery.{0}'.format(queue)
-        inspect = celery.control.inspect(destination=[destination])
+        inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         self.assertIsNotNone(stats)
 
     def assert_daemon_dead(self, queue):
         destination = 'celery.{0}'.format(queue)
-        inspect = celery.control.inspect(destination=[destination])
+        inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         self.assertIsNone(stats)
