@@ -65,7 +65,7 @@ class DaemonFactory(object):
             if os.path.islink(path):
                 continue
             basename = os.path.basename(path)
-            if basename == 'python':
+            if basename in ['python', 'python2.7', 'python2.6']:
                 continue
             with open(path) as f:
                 lines = f.read().split(os.linesep)
