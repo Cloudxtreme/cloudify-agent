@@ -15,12 +15,9 @@
 
 import os
 
-from cloudify.celery import celery
-
 from cloudify_agent.api.internal.daemon.initd import GenericLinuxDaemon
-
-from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.tests import resources
+from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.tests.api import SudoLessLocalCommandRunner
 from cloudify_agent.tests.api import SCRIPT_DIR
 from cloudify_agent.tests.api import CONFIG_DIR
@@ -81,9 +78,10 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             sudo_test_file = os.path.join(self.temp_folder, 'sudo-test')
             task_name = 'mock_plugin_sudo.tasks.run'
             args = [sudo_test_file]
-            async = celery.send_task(name=task_name,
-                                     queue=self.queue,
-                                     args=args)
+            async = self.celery.send_task(
+                name=task_name,
+                queue=self.queue,
+                args=args)
             async.get(timeout=5)
             self.assertTrue(os.path.exists(sudo_test_file))
         finally:

@@ -181,15 +181,15 @@ class GenericLinuxDaemon(Daemon):
                                .format(self.name, self.includes_file_path))
 
         if not str(self.min_workers).isdigit():
-            raise RuntimeError('min_workers is supposed to be a number '
-                               'but is: {0}'.format(self.min_workers))
+            raise ValueError('min_workers is supposed to be a number '
+                             'but is: {0}'.format(self.min_workers))
         if not str(self.max_workers).isdigit():
-            raise RuntimeError('max_workers is supposed to be a number '
-                               'but is: {0}'.format(self.max_workers))
+            raise ValueError('max_workers is supposed to be a number '
+                             'but is: {0}'.format(self.max_workers))
         min_workers = int(self.min_workers)
         max_workers = int(self.max_workers)
         if int(min_workers) > int(max_workers):
-            raise RuntimeError(
+            raise ValueError(
                 'min_workers cannot be greater than max_workers '
                 '[min_workers={0}, max_workers={1}]'
                 .format(min_workers, max_workers))
