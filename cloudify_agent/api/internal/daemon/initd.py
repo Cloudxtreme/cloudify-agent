@@ -29,7 +29,6 @@ class GenericLinuxDaemon(Daemon):
 
     SCRIPT_DIR = '/etc/init.d'
     CONFIG_DIR = '/etc/default'
-    PROCESS_MANAGEMENT = 'init.d'
 
     def __init__(self,
                  name, queue, host, manager_ip, user,
@@ -48,6 +47,10 @@ class GenericLinuxDaemon(Daemon):
 
         self.celery = Celery(broker=self.broker_url,
                              backend=self.broker_url)
+
+    @property
+    def process_management(self):
+        return 'init.d'
 
     def create(self):
         self._validate_create()
@@ -220,6 +223,7 @@ class GenericLinuxDaemon(Daemon):
             config_path=self.config_path
         )
         self.runner.sudo('cp {0} {1}'.format(rendered, self.script_path))
+        self.runner.sudo('rm {0}'.format(rendered))
         self.runner.sudo('chmod +x {0}'.format(self.script_path))
 
     def _create_config(self):
@@ -247,6 +251,7 @@ class GenericLinuxDaemon(Daemon):
         )
 
         self.runner.sudo('cp {0} {1}'.format(rendered, self.config_path))
+        self.runner.sudo('rm {0}'.format(rendered))
 
     def _disable_requiretty(self):
 

@@ -16,8 +16,8 @@
 import os
 import json
 import tempfile
-from cloudify.exceptions import CommandExecutionException
 
+from cloudify.exceptions import CommandExecutionException
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.api.internal.daemon.base import Daemon
@@ -41,7 +41,7 @@ class DaemonFactory(object):
 
         daemons = Daemon.__subclasses__()
         for daemon in daemons:
-            if daemon.PROCESS_MANAGEMENT == process_management:
+            if daemon.process_management == process_management:
                 return daemon
         raise RuntimeError('No implementation found for daemon of type: {0}'
                            .format(process_management))
@@ -93,6 +93,21 @@ class DaemonFactory(object):
                host,
                user,
                **optional_parameters):
+
+        """
+        Creates a daemon instance the implements the required process
+        management.
+
+        :param process_management:
+        :param name:
+        :param queue:
+        :param manager_ip:
+        :param host:
+        :param user:
+        :param optional_parameters:
+        :return:
+        """
+
         if optional_parameters.get('relocated'):
             DaemonFactory._fix_env()
         daemon = DaemonFactory._find_implementation(process_management)

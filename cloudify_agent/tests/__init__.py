@@ -30,8 +30,8 @@ class BaseTestCase(testtools.TestCase):
             'cloudify-agent.tests',
             level=logging.DEBUG)
         self.username = getpass.getuser()
-        self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
-        self.temp_file = tempfile.mkstemp(prefix='cloudify-agent-tests-')
+        self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-folder-')
+        self.temp_file = tempfile.mkstemp(prefix='cloudify-agent-tests-file-')
         self.currdir = os.getcwd()
         os.chdir(self.temp_folder)
 
