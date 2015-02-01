@@ -91,7 +91,6 @@ class GenericLinuxDaemon(Daemon):
         self._validate_delete()
         self.runner.sudo('rm {0}'.format(self.script_path))
         self.runner.sudo('rm {0}'.format(self.config_path))
-        self.runner.sudo('rm -rf {0}'.format(self.workdir))
 
     def register(self, plugin):
         plugin_paths = self._list_plugin_files(self.virtualenv,
@@ -151,7 +150,7 @@ class GenericLinuxDaemon(Daemon):
         if not os.path.exists(os.path.dirname(self.includes_file_path)):
             os.makedirs(os.path.dirname(self.includes_file_path))
         with open(self.includes_file_path, 'w') as f:
-            includes = []
+            includes = ['cloudify_agent.startup']
             for plugin in included_plugins:
                 includes.extend(self._list_plugin_files(self.virtualenv,
                                                         plugin))

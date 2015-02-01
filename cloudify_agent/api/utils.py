@@ -43,5 +43,6 @@ def content_to_tempfile(content, mode='r+'):
     temp = tempfile.NamedTemporaryFile(mode=mode, delete=False)
     with open(temp.name, 'r+') as f:
         f.write(content)
+        f.write(os.linesep)
     path = temp.name
     return path

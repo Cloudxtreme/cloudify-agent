@@ -1,29 +1,28 @@
 # local variables
-WORKER_QUEUE="{{ queue }}"
-CELERY_WORK_DIR="{{ workdir }}"
+WORKER_QUEUE={{ queue }}
+CELERY_WORK_DIR={{ workdir }}
 
 # Cloudify plugins environment variables
-export MANAGER_IP="{{ manager_ip }}"
-export AGENT_IP="{{ host }}"
-export MANAGER_REST_PORT="{{ manager_port }}"
-export MANAGER_FILE_SERVER_URL="http://${MANAGER_IP}:53229"
+export MANAGER_IP={{ manager_ip }}
+export AGENT_IP={{ host }}
+export MANAGER_REST_PORT={{ manager_port }}
+export MANAGER_FILE_SERVER_URL=http://{{ manager_ip }}:53229
 export MANAGER_FILE_SERVER_BLUEPRINTS_ROOT_URL="${MANAGER_FILE_SERVER_URL}/blueprints"
 
 # Celery worker environment variables
-export CELERY_BROKER_URL="{{ broker_url }}"
-export CELERY_APP="cloudify"
-export CELERY_TASK_SERIALIZER="json"
-export CELERY_RESULT_SERIALIZER="json"
-export CELERY_RESULT_BACKEND="${CELERY_BROKER_URL}"
-export CELERYD_WORK_DIR="${CELERY_WORK_DIR}"
+export CELERY_BROKER_URL={{ broker_url }}
+export CELERY_TASK_SERIALIZER=json
+export CELERY_RESULT_SERIALIZER=json
+export CELERY_RESULT_BACKEND=${CELERY_BROKER_URL}
+export CELERYD_WORK_DIR={{ workdir }}
 
 # Daemon variables, used by the daemonization script
-CELERYD_GROUP="{{ user }}"
-CELERYD_USER="{{ user }}"
-CELERYD_PID_FILE="${CELERY_WORK_DIR}/${WORKER_QUEUE}-celery.pid"
-CELERYD_LOG_FILE="${CELERY_WORK_DIR}/${WORKER_QUEUE}-celery.log"
-CELERYD_ENV_DIR="{{ virtualenv_path }}"
+CELERYD_GROUP={{ user }}
+CELERYD_USER={{ user }}
+CELERYD_PID_FILE="{{ workdir }}/${WORKER_QUEUE}-celery.pid"
+CELERYD_LOG_FILE="{{ workdir }}/${WORKER_QUEUE}-celery.log"
+CELERYD_ENV_DIR={{ virtualenv_path }}
 CELERYD_MULTI="${CELERYD_ENV_DIR}/bin/celeryd-multi"
-CELERYD_LOG_LEVEL="debug"
+CELERYD_LOG_LEVEL=debug
 CELERY_INCLUDES=$(cat {{ includes_file_path }})
 CELERYD_OPTS="--events -Q ${WORKER_QUEUE} --include=${CELERY_INCLUDES} --hostname=${WORKER_QUEUE} --autoscale={{ min_workers }},{{ max_workers }} --maxtasksperchild=10"

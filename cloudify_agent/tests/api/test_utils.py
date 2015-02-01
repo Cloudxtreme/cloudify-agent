@@ -39,7 +39,7 @@ class TestUtils(BaseApiTestCase):
         )
         with open(tempfile) as f:
             rendered = f.read()
-            self.assertIn('CELERY_WORK_DIR="workdir"', rendered)
+            self.assertIn('CELERY_WORK_DIR=workdir', rendered)
 
     def test_resource_to_tempfile(self):
         tempfile = utils.resource_to_tempfile(
@@ -52,7 +52,8 @@ class TestUtils(BaseApiTestCase):
         )
         with open(path_to_resource) as expected:
             with open(tempfile) as actual:
-                self.assertEqual(expected.read(),
+                self.assertEqual('{0}{1}'.format(expected.read(),
+                                                 os.linesep),
                                  actual.read())
 
     def test_content_to_tempfile(self):
@@ -60,7 +61,9 @@ class TestUtils(BaseApiTestCase):
             content='content'
         )
         with open(tempfile) as f:
-            self.assertEqual('content', f.read())
+            self.assertEqual('content{0}'
+                             .format(os.linesep),
+                             f.read())
 
     def test_run_script_from_temp_file(self):
         content = '#!/bin/bash\necho success'
