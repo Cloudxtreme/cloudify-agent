@@ -41,7 +41,7 @@ class DaemonFactory(object):
 
         daemons = Daemon.__subclasses__()
         for daemon in daemons:
-            if daemon.process_management == process_management:
+            if daemon.PROCESS_MANAGEMENT == process_management:
                 return daemon
         raise RuntimeError('No implementation found for daemon of type: {0}'
                            .format(process_management))

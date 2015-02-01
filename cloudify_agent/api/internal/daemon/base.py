@@ -28,6 +28,9 @@ class Daemon(object):
     Base class for all daemon implementations.
     """
 
+    # override this when adding implementations.
+    PROCESS_MANAGEMENT = None
+
     def __init__(self,
                  name,
                  queue,
@@ -74,10 +77,6 @@ class Daemon(object):
         # save for future reference
         self.optional_parameters = optional_parameters
         self.virtualenv = VIRTUALENV
-
-    @property
-    def process_management(self):
-        raise NotImplementedError('Must be implemented by subclass')
 
     def create(self):
         raise NotImplementedError('Must be implemented by subclass')

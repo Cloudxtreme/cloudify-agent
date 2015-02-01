@@ -29,7 +29,7 @@ from cloudify_agent.tests.api import travis
                      SudoLessLocalCommandRunner)
 class TestDaemonFactory(BaseApiTestCase):
 
-    def test_create(self):
+    def test_create_initd(self):
         daemon = DaemonFactory.create(
             process_management='init.d',
             name='name',
