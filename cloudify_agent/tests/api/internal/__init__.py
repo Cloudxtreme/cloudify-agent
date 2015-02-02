@@ -104,7 +104,6 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         else:
             # when running locally, avoid sudo
             self.runner = SudoLessLocalCommandRunner(self.logger)
-        self._smakedirs(CLOUDIFY_STORAGE_FOLDER)
         self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
         self.currdir = os.getcwd()
         self.username = getpass.getuser()

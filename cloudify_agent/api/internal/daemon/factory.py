@@ -145,7 +145,7 @@ class DaemonFactory(object):
         runner = LocalCommandRunner(logger=api_logger)
 
         if not os.path.exists(CLOUDIFY_AGENT_STORAGE):
-            runner.sudo('mkdir {0}'.format(CLOUDIFY_AGENT_STORAGE))
+            runner.sudo('mkdir -p {0}'.format(CLOUDIFY_AGENT_STORAGE))
 
         daemon_path = os.path.join(
             CLOUDIFY_AGENT_STORAGE, '{0}.json'.format(daemon.name)
@@ -161,6 +161,7 @@ class DaemonFactory(object):
             json.dump(props, f, indent=2)
             f.write(os.linesep)
         runner.sudo('cp {0} {1}'.format(temp[1], daemon_path))
+        runner.sudo('rm {0}'.format(temp[1]))
 
     @staticmethod
     def delete(daemon):
