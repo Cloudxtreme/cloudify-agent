@@ -13,16 +13,17 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import uuid
 import os
 
+
 from cloudify_agent.api.internal.daemon.initd import GenericLinuxDaemon
+from cloudify_agent import VIRTUALENV
 from cloudify_agent.tests import resources
-from cloudify_agent.tests.api import BaseApiTestCase
-from cloudify_agent.tests.api import SudoLessLocalCommandRunner
-from cloudify_agent.tests.api import SCRIPT_DIR
-from cloudify_agent.tests.api import CONFIG_DIR
-from cloudify_agent.tests.api import patch_unless_travis
-from cloudify_agent.tests.api import travis
+from cloudify_agent.tests.api.internal import BaseDaemonLiveTestCase
+from cloudify_agent.tests.api.internal import SudoLessLocalCommandRunner
+from cloudify_agent.tests.api.internal import patch_unless_travis
+from cloudify_agent.tests.api.internal import travis
 
 
 def sudoless_start_command(daemon):
@@ -32,6 +33,9 @@ def sudoless_start_command(daemon):
 def sudoless_stop_command(daemon):
     return '{0} stop'.format(daemon.script_path)
 
+
+SCRIPT_DIR = '/tmp/etc/init.d'
+CONFIG_DIR = '/tmp/etc/default'
 
 @patch_unless_travis(
     'cloudify_agent.api.internal.daemon.base.LocalCommandRunner',
@@ -48,7 +52,14 @@ def sudoless_stop_command(daemon):
 @patch_unless_travis(
     'cloudify_agent.api.internal.daemon.initd.stop_command',
     sudoless_stop_command)
-class TestGenericLinuxDaemon(BaseApiTestCase):
+class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
+
+    def setUp(self):
+        super(TestGenericLinuxDaemon, self).setUp()
+        self.name = 'cloudify-agent-{0}'.format(str(uuid.uuid4())[0:4])
+        self.queue = '{0}-queue'.format(self.name)
+        self._smakedirs(CONFIG_DIR)
+        self._smakedirs(SCRIPT_DIR)
 
     PROCESS_MANAGEMENT = 'init.d'
 
@@ -69,7 +80,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         )
         daemon.create()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin-sudo'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         try:
@@ -86,7 +97,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             self.assertTrue(os.path.exists(sudo_test_file))
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin-sudo'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)
 
     def test_create(self):
@@ -157,7 +168,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         )
         daemon.create()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         try:
@@ -169,7 +180,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)
 
     def test_restart(self):
@@ -184,7 +195,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         daemon.create()
         from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         daemon.start()
@@ -197,7 +208,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)
 
     def test_create_twice(self):
@@ -274,7 +285,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
         )
         daemon.create()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin-error'
-                        .format(daemon.virtualenv,
+                        .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
                         stdout_pipe=False)
         try:
@@ -287,7 +298,7 @@ class TestGenericLinuxDaemon(BaseApiTestCase):
                 self.assertIn('cannot import name non_existent', str(e))
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin-error'
-                            .format(daemon.virtualenv),
+                            .format(VIRTUALENV),
                             stdout_pipe=False)
 
     def test_start_short_timeout(self):

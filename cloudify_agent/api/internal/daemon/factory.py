@@ -108,10 +108,8 @@ class DaemonFactory(object):
         :return:
         """
 
-        if optional_parameters.get('relocated'):
-            DaemonFactory._fix_env()
         daemon = DaemonFactory._find_implementation(process_management)
-        return daemon(
+        instance = daemon(
             name=name,
             queue=queue,
             manager_ip=manager_ip,
@@ -119,6 +117,9 @@ class DaemonFactory(object):
             user=user,
             **optional_parameters
         )
+        if instance.relocated:
+            DaemonFactory._fix_env()
+        return instance
 
     @staticmethod
     def load(name):
@@ -151,15 +152,12 @@ class DaemonFactory(object):
         )
         temp = tempfile.mkstemp()
         with open(temp[1], 'w') as f:
-            props = {
-                'name': daemon.name,
-                'queue': daemon.queue,
-                'manager_ip': daemon.manager_ip,
-                'host': daemon.host,
-                'user': daemon.user,
-                'process_management': daemon.PROCESS_MANAGEMENT
-            }
-            props.update(**daemon.optional_parameters)
+            props = daemon.__dict__
+            # remove non-serializable objects
+            props.pop('runner')
+            props.pop('logger')
+            props.pop('celery')
+            props['process_management'] = daemon.PROCESS_MANAGEMENT
             json.dump(props, f, indent=2)
             f.write(os.linesep)
         runner.sudo('cp {0} {1}'.format(temp[1], daemon_path))

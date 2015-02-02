@@ -13,22 +13,14 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import testtools
 import sys
 from mock import patch
 
 from cloudify_agent.shell import cli
 
-from cloudify_agent.tests import BaseTestCase
 
-
-class BaseCommandLineTestCase(BaseTestCase):
-
-    def setUp(self):
-        super(BaseCommandLineTestCase, self).setUp()
-
-    @classmethod
-    def setUpClass(cls):
-        super(BaseCommandLineTestCase, cls).setUpClass()
+class BaseCommandLineTestCase(testtools.TestCase):
 
     def _run(self, command):
         sys.argv = command.split()
@@ -43,6 +35,6 @@ class BaseCommandLineTestCase(BaseTestCase):
         with patch.object(module, function_name) as mock:
             try:
                 self._run(cli_command)
-            except BaseException as e:
-                self.logger.info(str(e))
+            except SystemExit:
+                pass
             mock.assert_called_with(*args, **kwargs)

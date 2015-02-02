@@ -16,13 +16,13 @@
 import os
 import time
 
-from celery import Celery
 from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
 from cloudify_agent.api.internal.daemon.base import Daemon
 from cloudify_agent.api import defaults
+from cloudify_agent import VIRTUALENV
 
 
 class GenericLinuxDaemon(Daemon):
@@ -45,9 +45,6 @@ class GenericLinuxDaemon(Daemon):
             self.workdir,
             '{0}-includes'.format(self.name)
         )
-
-        self.celery = Celery(broker=self.broker_url,
-                             backend=self.broker_url)
 
     def create(self):
         self._validate_create()
@@ -93,8 +90,7 @@ class GenericLinuxDaemon(Daemon):
         self.runner.sudo('rm {0}'.format(self.config_path))
 
     def register(self, plugin):
-        plugin_paths = self._list_plugin_files(self.virtualenv,
-                                               plugin)
+        plugin_paths = self._list_plugin_files(plugin)
 
         with open(self.includes_file_path) as include_file:
             includes = include_file.read()
@@ -111,14 +107,12 @@ class GenericLinuxDaemon(Daemon):
         self.start()
 
     @staticmethod
-    def _list_plugin_files(virtualenv_path,
-                           plugin_name):
+    def _list_plugin_files(plugin_name):
 
         """
         Retrieves python files related to the the plugin.
         note that __init__ file are filtered out.
 
-        :param virtualenv_path: The virtualenv this plugin is installed under.
         :param plugin_name: The plugin name.
         :return: A list of file paths.
         :rtype `Array`
@@ -128,7 +122,7 @@ class GenericLinuxDaemon(Daemon):
         runner = LocalCommandRunner()
         files = runner.run(
             '{0}/bin/pip show -f {1}'
-            .format(virtualenv_path, plugin_name)
+            .format(VIRTUALENV, plugin_name)
         ).output.splitlines()
         for module in files:
             if module.endswith('.py') and '__init__' not in module:
@@ -150,10 +144,9 @@ class GenericLinuxDaemon(Daemon):
         if not os.path.exists(os.path.dirname(self.includes_file_path)):
             os.makedirs(os.path.dirname(self.includes_file_path))
         with open(self.includes_file_path, 'w') as f:
-            includes = ['cloudify_agent.startup']
+            includes = []
             for plugin in included_plugins:
-                includes.extend(self._list_plugin_files(self.virtualenv,
-                                                        plugin))
+                includes.extend(self._list_plugin_files(plugin))
             f.write(','.join(includes))
 
     def _validate_create(self):
@@ -244,7 +237,7 @@ class GenericLinuxDaemon(Daemon):
             min_workers=self.min_workers,
             max_workers=self.max_workers,
             includes_file_path=self.includes_file_path,
-            virtualenv_path=self.virtualenv
+            virtualenv_path=VIRTUALENV
         )
 
         self.runner.sudo('cp {0} {1}'.format(rendered, self.config_path))

@@ -13,21 +13,21 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import testtools
 import uuid
 
 from cloudify_agent.api.internal.daemon.factory import DaemonFactory
-from cloudify_agent.tests.api import BaseApiTestCase
-from cloudify_agent.tests.api import CLOUDIFY_STORAGE_FOLDER
-from cloudify_agent.tests.api import SudoLessLocalCommandRunner
-from cloudify_agent.tests.api import patch_unless_travis
-from cloudify_agent.tests.api import travis
+from cloudify_agent.tests.api.internal import CLOUDIFY_STORAGE_FOLDER
+from cloudify_agent.tests.api.internal import SudoLessLocalCommandRunner
+from cloudify_agent.tests.api.internal import patch_unless_travis
+from cloudify_agent.tests.api.internal import travis
 
 
 @patch_unless_travis('cloudify_agent.api.internal.daemon.factory.CLOUDIFY_AGENT_STORAGE',  # NOQA
                      CLOUDIFY_STORAGE_FOLDER)
 @patch_unless_travis('cloudify_agent.api.internal.daemon.factory.LocalCommandRunner',  # NOQA
                      SudoLessLocalCommandRunner)
-class TestDaemonFactory(BaseApiTestCase):
+class TestDaemonFactory(testtools.TestCase):
 
     def test_create_initd(self):
         daemon = DaemonFactory.create(
@@ -37,19 +37,13 @@ class TestDaemonFactory(BaseApiTestCase):
             manager_ip='127.0.0.1',
             host='127.0.0.1',
             user='user',
-            optional1='optional1',
-            optional2='optional2')
+            broker_url='127.0.0.1')
         self.assertEqual('name', daemon.name)
         self.assertEqual('queue', daemon.queue)
         self.assertEqual('127.0.0.1', daemon.manager_ip)
         self.assertEqual('127.0.0.1', daemon.host)
+        self.assertEqual('127.0.0.1', daemon.broker_url)
         self.assertEqual('user', daemon.user)
-        self.assertEqual(
-            {
-                'optional1': 'optional1',
-                'optional2': 'optional2'
-            },
-            daemon.optional_parameters)
 
     def test_create_relocated(self):
         if not travis():
@@ -81,8 +75,7 @@ class TestDaemonFactory(BaseApiTestCase):
             manager_ip='127.0.0.1',
             host='127.0.0.1',
             user='user',
-            optional1='optional1',
-            optional2='optional2')
+            broker_url='127.0.0.1')
 
         DaemonFactory.save(daemon)
         loaded = DaemonFactory.load(name)
@@ -92,12 +85,7 @@ class TestDaemonFactory(BaseApiTestCase):
         self.assertEqual('127.0.0.1', loaded.manager_ip)
         self.assertEqual('127.0.0.1', loaded.host)
         self.assertEqual('user', loaded.user)
-        self.assertEqual(
-            {
-                'optional1': 'optional1',
-                'optional2': 'optional2'
-            },
-            loaded.optional_parameters)
+        self.assertEqual('127.0.0.1', daemon.broker_url)
         DaemonFactory.delete(daemon)
         self.assertRaises(IOError, DaemonFactory.load, daemon)
 

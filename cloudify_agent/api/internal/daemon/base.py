@@ -16,10 +16,10 @@
 import os
 
 from cloudify.utils import LocalCommandRunner
+from celery import Celery
 
 from cloudify_agent.api import defaults
 from cloudify_agent.api import daemon_logger
-from cloudify_agent import VIRTUALENV
 
 
 class Daemon(object):
@@ -46,11 +46,16 @@ class Daemon(object):
         self.manager_ip = manager_ip
         self.user = user
 
-        # optional parameters with defaults
-        self.broker_ip = optional_parameters.get(
+        # optional parameters
+        broker_ip = optional_parameters.get(
             'broker_ip') or manager_ip
-        self.broker_port = optional_parameters.get(
+        broker_port = optional_parameters.get(
             'broker_port') or defaults.BROKER_PORT
+
+        self.broker_url = optional_parameters.get(
+            'broker_url') or defaults.BROKER_URL.format(
+            broker_ip,
+            broker_port)
         self.manager_port = optional_parameters.get(
             'manager_port') or defaults.MANAGER_PORT
         self.min_workers = optional_parameters.get(
@@ -61,10 +66,6 @@ class Daemon(object):
             'disable_requiretty') or defaults.DISABLE_REQUIRETTY
         self.workdir = optional_parameters.get(
             'workdir') or os.getcwd()
-        self.broker_url = optional_parameters.get(
-            'broker_url') or defaults.BROKER_URL.format(
-            self.broker_ip,
-            self.broker_port)
         self.relocated = optional_parameters.get(
             'relocated') or defaults.RELOCATED
 
@@ -74,9 +75,9 @@ class Daemon(object):
         # configure command runner
         self.runner = LocalCommandRunner(logger=self.logger)
 
-        # save for future reference
-        self.optional_parameters = optional_parameters
-        self.virtualenv = VIRTUALENV
+        # initialize an internal celery client
+        self.celery = Celery(broker=self.broker_url,
+                             backend=self.broker_url)
 
     def create(self):
         raise NotImplementedError('Must be implemented by subclass')

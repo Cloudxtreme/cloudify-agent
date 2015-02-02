@@ -13,14 +13,22 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import testtools
+import uuid
+import getpass
 from mock import patch
 
-from cloudify_agent.tests.api import BaseApiTestCase
 from cloudify_agent.api import daemon as api
 
 
 @patch('cloudify_agent.api.daemon.DaemonFactory')
-class TestApi(BaseApiTestCase):
+class TestApi(testtools.TestCase):
+
+    def setUp(self):
+        super(TestApi, self).setUp()
+        self.username = getpass.getuser()
+        self.name = 'cloudify-agent-{0}'.format(str(uuid.uuid4())[0:4])
+        self.queue = '{0}-queue'.format(self.name)
 
     def test_create(self, factory):
         api.create(

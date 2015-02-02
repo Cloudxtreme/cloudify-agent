@@ -13,14 +13,14 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import testtools
 import os
 
 import cloudify_agent
 from cloudify_agent.api import utils
-from cloudify_agent.tests.api import BaseApiTestCase
 
 
-class TestUtils(BaseApiTestCase):
+class TestUtils(testtools.TestCase):
 
     def test_get_resource(self):
         resource = utils.get_resource('celeryd.conf.template')

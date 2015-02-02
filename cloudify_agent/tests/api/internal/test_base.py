@@ -13,18 +13,18 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-
+import testtools
 import os
 
 from cloudify_agent.api.internal.daemon.base import Daemon
-from cloudify_agent.tests.api import BaseApiTestCase
 
 
-class TestDaemon(BaseApiTestCase):
+class TestDaemon(testtools.TestCase):
 
-    def setUp(self):
-        super(TestDaemon, self).setUp()
-        self.daemon = Daemon(
+    @classmethod
+    def setUpClass(cls):
+        super(TestDaemon, cls).setUpClass()
+        cls.daemon = Daemon(
             name=None,
             queue=None,
             host=None,
@@ -34,9 +34,6 @@ class TestDaemon(BaseApiTestCase):
 
     def test_default_basedir(self):
         self.assertEqual(os.getcwd(), self.daemon.workdir)
-
-    def test_default_broker_port(self):
-        self.assertEqual(5672, self.daemon.broker_port)
 
     def test_default_manager_port(self):
         self.assertEqual(80, self.daemon.manager_port)
