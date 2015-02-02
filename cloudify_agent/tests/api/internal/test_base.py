@@ -46,3 +46,7 @@ class TestDaemon(BaseApiTestCase):
 
     def test_default_max_workers(self):
         self.assertEqual(5, self.daemon.max_workers)
+
+    def test_default_broker_url(self):
+        self.assertEqual('amqp://guest:guest@None:5672//',
+                         self.daemon.broker_url)
