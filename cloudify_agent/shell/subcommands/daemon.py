@@ -101,12 +101,7 @@ from cloudify_agent.shell import env
               type=click.Choice(['init.d']),
               default='init.d',
               envvar=env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT)
-def create(name,
-           queue,
-           host,
-           manager_ip,
-           user,
-           **optional_parameters):
+def create(process_management, **params):
 
     """
     Creates the necessary configuration files for the daemon.
@@ -114,16 +109,9 @@ def create(name,
     """
 
     click.echo('Creating...')
-
-    daemon_api.create(
-        name=name,
-        queue=queue,
-        host=host,
-        manager_ip=manager_ip,
-        user=user,
-        **optional_parameters
-    )
-    click.echo('Successfully created daemon: {0}'.format(name))
+    daemon_name = daemon_api.create(process_management, **params)
+    click.echo('Successfully created daemon: {0}'
+               .format(daemon_name))
 
 
 @click.command()

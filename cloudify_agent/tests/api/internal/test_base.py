@@ -25,11 +25,11 @@ class TestDaemon(testtools.TestCase):
     def setUpClass(cls):
         super(TestDaemon, cls).setUpClass()
         cls.daemon = Daemon(
-            name=None,
-            queue=None,
-            host=None,
-            manager_ip=None,
-            user=None
+            name='name',
+            queue='queue',
+            host='queue',
+            manager_ip='manager_ip',
+            user='user'
         )
 
     def test_default_basedir(self):
@@ -45,5 +45,5 @@ class TestDaemon(testtools.TestCase):
         self.assertEqual(5, self.daemon.max_workers)
 
     def test_default_broker_url(self):
-        self.assertEqual('amqp://guest:guest@None:5672//',
+        self.assertEqual('amqp://guest:guest@manager_ip:5672//',
                          self.daemon.broker_url)

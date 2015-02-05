@@ -29,8 +29,8 @@ from cloudify_agent.tests.api.internal import travis
                      SudoLessLocalCommandRunner)
 class TestDaemonFactory(testtools.TestCase):
 
-    def test_create_initd(self):
-        daemon = DaemonFactory.create(
+    def test_new_initd(self):
+        daemon = DaemonFactory.new(
             process_management='init.d',
             name='name',
             queue='queue',
@@ -45,13 +45,13 @@ class TestDaemonFactory(testtools.TestCase):
         self.assertEqual('127.0.0.1', daemon.broker_url)
         self.assertEqual('user', daemon.user)
 
-    def test_create_relocated(self):
+    def test_new_relocated(self):
         if not travis():
             raise RuntimeError('Error! This test cannot be executed '
                                'outside of the travis CI '
                                'system since it may corrupt '
                                'your local virtualenv')
-        daemon = DaemonFactory.create(
+        daemon = DaemonFactory.new(
             process_management='init.d',
             name='name',
             queue='queue',
@@ -68,7 +68,7 @@ class TestDaemonFactory(testtools.TestCase):
     def test_save_load_delete(self):
 
         name = 'name-{0}'.format(str(uuid.uuid4())[0:4])
-        daemon = DaemonFactory.create(
+        daemon = DaemonFactory.new(
             process_management='init.d',
             name=name,
             queue='queue',
@@ -86,7 +86,7 @@ class TestDaemonFactory(testtools.TestCase):
         self.assertEqual('127.0.0.1', loaded.host)
         self.assertEqual('user', loaded.user)
         self.assertEqual('127.0.0.1', daemon.broker_url)
-        DaemonFactory.delete(daemon)
+        DaemonFactory.delete(daemon.name)
         self.assertRaises(IOError, DaemonFactory.load, daemon)
 
     def test_load_non_existing(self):

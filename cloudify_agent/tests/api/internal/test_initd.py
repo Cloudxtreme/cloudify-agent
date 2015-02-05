@@ -112,6 +112,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.create()
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))
+        self.assertTrue(os.path.exists(daemon.includes_file_path))
 
     def test_delete(self):
         daemon = GenericLinuxDaemon(
@@ -128,6 +129,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.delete()
         self.assertFalse(os.path.exists(daemon.script_path))
         self.assertFalse(os.path.exists(daemon.config_path))
+        self.assertFalse(os.path.exists(daemon.includes_file_path))
 
     def test_start(self):
         daemon = GenericLinuxDaemon(

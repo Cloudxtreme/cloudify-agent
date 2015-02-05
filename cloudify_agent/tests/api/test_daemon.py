@@ -39,11 +39,11 @@ class TestApi(testtools.TestCase):
             user=self.username,
             process_management='Whatever'
         )
-        factory_create = factory.create
+        factory_new = factory.new
         factory_save = factory.save
-        daemon = factory_create.return_value
+        daemon = factory_new.return_value
 
-        factory_create.assert_called_once_with(
+        factory_new.assert_called_once_with(
             name=self.name,
             queue=self.queue,
             host='127.0.0.1',

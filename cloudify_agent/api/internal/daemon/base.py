@@ -22,6 +22,15 @@ from cloudify_agent.api import defaults
 from cloudify_agent.api import daemon_logger
 
 
+MANDATORY_PARAMS = [
+    'name',
+    'queue',
+    'host',
+    'manager_ip',
+    'user'
+]
+
+
 class Daemon(object):
 
     """
@@ -31,43 +40,43 @@ class Daemon(object):
     # override this when adding implementations.
     PROCESS_MANAGEMENT = None
 
-    def __init__(self,
-                 name,
-                 queue,
-                 host,
-                 manager_ip,
-                 user,
-                 **optional_parameters):
+    def __init__(self, **params):
 
-        # Mandatory arguments
-        self.name = name
-        self.queue = queue
-        self.host = host
-        self.manager_ip = manager_ip
-        self.user = user
+        # Mandatory parameters
+        self._validate_mandatory(params)
 
-        # optional parameters
-        broker_ip = optional_parameters.get(
-            'broker_ip') or manager_ip
-        broker_port = optional_parameters.get(
+        self.name = params['name']
+        self.queue = params['queue']
+        self.host = params['host']
+        self.manager_ip = params['manager_ip']
+        self.user = params['user']
+
+        # Optional parameters
+        self._validate_optional(params)
+
+        broker_ip = params.get(
+            'broker_ip') or self.manager_ip
+        broker_port = params.get(
             'broker_port') or defaults.BROKER_PORT
 
-        self.broker_url = optional_parameters.get(
+        self.broker_url = params.get(
             'broker_url') or defaults.BROKER_URL.format(
             broker_ip,
             broker_port)
-        self.manager_port = optional_parameters.get(
+        self.manager_port = params.get(
             'manager_port') or defaults.MANAGER_PORT
-        self.min_workers = optional_parameters.get(
+        self.min_workers = params.get(
             'min_workers') or defaults.MIN_WORKERS
-        self.max_workers = optional_parameters.get(
+        self.max_workers = params.get(
             'max_workers') or defaults.MAX_WORKERS
-        self.disable_requiretty = optional_parameters.get(
+        self.disable_requiretty = params.get(
             'disable_requiretty') or defaults.DISABLE_REQUIRETTY
-        self.workdir = optional_parameters.get(
+        self.workdir = params.get(
             'workdir') or os.getcwd()
-        self.relocated = optional_parameters.get(
+        self.relocated = params.get(
             'relocated') or defaults.RELOCATED
+
+        self.process_management = self.PROCESS_MANAGEMENT
 
         # configure logger
         self.logger = daemon_logger
@@ -78,6 +87,60 @@ class Daemon(object):
         # initialize an internal celery client
         self.celery = Celery(broker=self.broker_url,
                              backend=self.broker_url)
+
+    @staticmethod
+    def _validate_mandatory(params):
+
+        """
+        Validates all mandatory parameters are given.
+
+        :param params: parameters of the daemon.
+        :type params: dict
+
+        :raise ValueError: in case one of the mandatory parameters is missing.
+        """
+
+        for param in MANDATORY_PARAMS:
+            value = params.get(param)
+            if not value:
+                raise ValueError(
+                    '{0} is mandatory'
+                    .format(param)
+                )
+
+    @staticmethod
+    def _validate_optional(params):
+
+        """
+        Validates any optional parameters given to the daemon.
+
+        :param params: parameters of the daemon.
+        :type params: dict
+
+        :raise ValueError: in case one of the parameters is faulty.
+        """
+
+        min_workers = params.get('min_workers')
+        max_workers = params.get('max_workers')
+
+        if min_workers:
+            if not str(min_workers).isdigit():
+                raise ValueError('min_workers is supposed to be a number '
+                                 'but is: {0}'.format(min_workers))
+            min_workers = int(min_workers)
+
+        if max_workers:
+            if not str(max_workers).isdigit():
+                raise ValueError('max_workers is supposed to be a number '
+                                 'but is: {0}'.format(max_workers))
+            max_workers = int(max_workers)
+
+        if min_workers and max_workers:
+            if min_workers > max_workers:
+                raise ValueError(
+                    'min_workers cannot be greater than max_workers '
+                    '[min_workers={0}, max_workers={1}]'
+                    .format(min_workers, max_workers))
 
     def create(self):
         raise NotImplementedError('Must be implemented by subclass')

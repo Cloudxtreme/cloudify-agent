@@ -22,11 +22,17 @@ from cloudify.utils import LocalCommandRunner
 
 from cloudify_agent.api.internal.daemon.base import Daemon
 from cloudify_agent.api import api_logger
+from cloudify_agent.api import utils
 from cloudify_agent import VIRTUALENV
 from cloudify_agent import CLOUDIFY_AGENT_STORAGE
 
 
 class DaemonFactory(object):
+
+    """
+    Factory class for manipulating various daemon instances.
+
+    """
 
     @staticmethod
     def _find_implementation(process_management):
@@ -37,6 +43,11 @@ class DaemonFactory(object):
         need to be imported at this time.
 
         see api/internal/daemon/__init__.py
+
+        :param process_management: The process management type.
+        :type process_management: str
+
+        :raise RuntimeError: if no implementation could be found.
         """
 
         daemons = Daemon.__subclasses__()
@@ -45,6 +56,26 @@ class DaemonFactory(object):
                 return daemon
         raise RuntimeError('No implementation found for daemon of type: {0}'
                            .format(process_management))
+
+    @staticmethod
+    def _disable_requiretty():
+
+        """
+        Disables the requiretty directive in the /etc/sudoers file. This
+        will enable operations that require sudo permissions to work properly.
+
+        This is needed because operations are executed
+        from within the worker process, which is not a tty process.
+
+        """
+
+        runner = LocalCommandRunner()
+
+        disable_requiretty_script_path = utils.resource_to_tempfile(
+            resource_path='disable-requiretty.sh'
+        )
+        runner.run('chmod +x {0}'.format(disable_requiretty_script_path))
+        runner.sudo('{0}'.format(disable_requiretty_script_path))
 
     @staticmethod
     def _fix_env():
@@ -86,43 +117,45 @@ class DaemonFactory(object):
                 pass
 
     @staticmethod
-    def create(process_management,
-               name,
-               queue,
-               manager_ip,
-               host,
-               user,
-               **optional_parameters):
+    def new(process_management, **params):
 
         """
-        Creates a daemon instance the implements the required process
+        Creates a daemon instance that implements the required process
         management.
 
-        :param process_management:
-        :param name:
-        :param queue:
-        :param manager_ip:
-        :param host:
-        :param user:
-        :param optional_parameters:
-        :return:
+        :param process_management: The process management to use.
+        :type process_management: str
+
+        :param params: parameters passed to the daemon class constructor.
+        :type params: dict
+
+        :return: A daemon instance.
+        :rtype `cloudify_agent.api.internal.daemon.base.Daemon`
         """
 
         daemon = DaemonFactory._find_implementation(process_management)
-        instance = daemon(
-            name=name,
-            queue=queue,
-            manager_ip=manager_ip,
-            host=host,
-            user=user,
-            **optional_parameters
-        )
+        instance = daemon(**params)
         if instance.relocated:
             DaemonFactory._fix_env()
+        if instance.disable_requiretty:
+            DaemonFactory._disable_requiretty()
         return instance
 
     @staticmethod
     def load(name):
+
+        """
+        Loads a daemon from local storage.
+
+        :param name: The name of the daemon to load.
+        :type name: str
+
+        :return: A daemon instance.
+        :rtype `cloudify_agent.api.internal.daemon.base.Daemon`
+
+        :raise IOError: in case the daemon file does not exist.
+        """
+
         daemon_path = os.path.join(
             CLOUDIFY_AGENT_STORAGE,
             '{0}.json'.format(name)
@@ -142,6 +175,15 @@ class DaemonFactory(object):
 
     @staticmethod
     def save(daemon):
+
+        """
+        Saves a daemon to the local storage. The daemon is stored in json format and contains
+        all daemon properties.
+
+        :param daemon: The daemon instance to save.
+        :type daemon: `cloudify_agent.api.internal.daemon.base.Daemon`
+        """
+
         runner = LocalCommandRunner(logger=api_logger)
 
         if not os.path.exists(CLOUDIFY_AGENT_STORAGE):
@@ -157,15 +199,21 @@ class DaemonFactory(object):
             props.pop('runner')
             props.pop('logger')
             props.pop('celery')
-            props['process_management'] = daemon.PROCESS_MANAGEMENT
             json.dump(props, f, indent=2)
             f.write(os.linesep)
         runner.sudo('cp {0} {1}'.format(temp[1], daemon_path))
         runner.sudo('rm {0}'.format(temp[1]))
 
     @staticmethod
-    def delete(daemon):
+    def delete(name):
+
+        """
+        Deletes a daemon from local storage.
+
+        :param name: The name of the daemon to delete.
+        :type name: str
+        """
         daemon_context = os.path.join(CLOUDIFY_AGENT_STORAGE,
-                                      '{0}.json'.format(daemon.name))
+                                      '{0}.json'.format(name))
         runner = LocalCommandRunner(logger=api_logger)
         runner.sudo('rm {0}'.format(daemon_context))
