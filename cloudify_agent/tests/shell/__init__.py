@@ -24,7 +24,10 @@ class BaseCommandLineTestCase(testtools.TestCase):
 
     def _run(self, command):
         sys.argv = command.split()
-        cli.main()
+        try:
+            cli.main()
+        except SystemExit:
+            pass
 
     def assert_function_called(self, cli_command, module, function_name,
                                args=None, kwargs=None):
@@ -33,8 +36,9 @@ class BaseCommandLineTestCase(testtools.TestCase):
         if not args:
             args = []
         with patch.object(module, function_name) as mock:
-            try:
-                self._run(cli_command)
-            except SystemExit:
-                pass
+            self._run(cli_command)
             mock.assert_called_with(*args, **kwargs)
+
+    def _run_patched(self, cli_command, module, function_name):
+        with patch.object(module, function_name):
+            self._run(cli_command)

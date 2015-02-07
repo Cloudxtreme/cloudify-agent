@@ -26,16 +26,17 @@ from cloudify_agent.tests.api.internal import patch_unless_travis
 from cloudify_agent.tests.api.internal import travis
 
 
-def sudoless_start_command(daemon):
+def _sudoless_start_command(daemon):
     return '{0} start'.format(daemon.script_path)
 
 
-def sudoless_stop_command(daemon):
+def _sudoless_stop_command(daemon):
     return '{0} stop'.format(daemon.script_path)
 
 
 SCRIPT_DIR = '/tmp/etc/init.d'
 CONFIG_DIR = '/tmp/etc/default'
+
 
 @patch_unless_travis(
     'cloudify_agent.api.internal.daemon.base.LocalCommandRunner',
@@ -48,10 +49,10 @@ CONFIG_DIR = '/tmp/etc/default'
     CONFIG_DIR)
 @patch_unless_travis(
     'cloudify_agent.api.internal.daemon.initd.start_command',
-    sudoless_start_command)
+    _sudoless_start_command)
 @patch_unless_travis(
     'cloudify_agent.api.internal.daemon.initd.stop_command',
-    sudoless_stop_command)
+    _sudoless_stop_command)
 class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
 
     def setUp(self):
@@ -297,7 +298,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
                 self.fail('Expected start operation to fail '
                           'due to bad import')
             except RuntimeError as e:
-                self.assertIn('cannot import name non_existent', str(e))
+                self.assertTrue('cannot import name non_existent' in str(e))
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin-error'
                             .format(VIRTUALENV),
@@ -316,7 +317,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         try:
             daemon.start(timeout=-1)
         except RuntimeError as e:
-            self.assertIn('waited for -1 seconds', str(e))
+            self.assertTrue('waited for -1 seconds' in str(e))
 
     def test_start_twice(self):
         daemon = GenericLinuxDaemon(
@@ -349,7 +350,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         try:
             daemon.stop(timeout=-1)
         except RuntimeError as e:
-            self.assertIn('waited for -1 seconds', str(e))
+            self.assertTrue('waited for -1 seconds' in str(e))
 
     def test_stop_twice(self):
         daemon = GenericLinuxDaemon(

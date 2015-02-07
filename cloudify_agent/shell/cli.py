@@ -74,7 +74,7 @@ def _set_logger(debug):
 
 def _set_exception_hook(debug):
 
-    def exception_hook(tpe, value, tb):
+    def _exception_hook(tpe, value, tb):
         output = '[FATAL] {0}'.format(str(value))
 
         if debug:
@@ -90,4 +90,4 @@ def _set_exception_hook(debug):
             click.echo(output)
         return output
 
-    sys.excepthook = exception_hook
+    sys.excepthook = _exception_hook

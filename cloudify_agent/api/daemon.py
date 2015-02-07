@@ -33,15 +33,16 @@ def create(process_management, **params):
 
     ``name``:
 
-        the name to give the agent. This name will be a unique identifier of the daemon.
-        meaning you will not be able to create more agents with that name until a delete
-        operation has been performed.
+        the name to give the agent. This name will be a unique identifier
+        of the daemon. meaning you will not be able to create more agents
+        with that name until a delete operation has been performed.
 
     ``queue``:
 
-        the queue this agent will listen to. It is possible to create different workers with
-        the same queue, however this is discouraged. to create more workers that process tasks
-        of a given queue, use the 'min_workers' and 'max_workers' key
+        the queue this agent will listen to. It is possible to
+        create different workers with the same queue, however this is
+        discouraged. to create more workers that process tasks of a given
+        queue, use the 'min_workers' and 'max_workers' keys
 
     ``host``:
 
@@ -81,7 +82,8 @@ def create(process_management, **params):
             amqp://192.168.9.19:6786
 
         if this is not specified, the broker url will be constructed from the
-        broker_ip and broker_port like so: 'amqp://guest:guest@<broker_ip>:<broker_port>//'
+        broker_ip and broker_port like so:
+        'amqp://guest:guest@<broker_ip>:<broker_port>//'
 
     ``manager_port``:
 
@@ -89,31 +91,34 @@ def create(process_management, **params):
 
     ``min_workers``:
 
-        the minimum number of worker processes this agent will manage. all workers will listen on
-        the same queue allowing for higher concurrency when preforming tasks.
-        defaults to 0.
+        the minimum number of worker processes this agent will manage.
+        all workers will listen on the same queue allowing for higher
+        concurrency when preforming tasks. defaults to 0.
 
     ``max_workers``:
 
-        the maximum number of worker processes this agent will manager. as tasks keep coming
-        in, the agent will expand its worker pool to handle more tasks concurrently. However, as the name
-         suggests, it will never exceed this number. allowing for the control of resource usage.
-         defaults to 5.
+        the maximum number of worker processes this agent will manager.
+        as tasks keep coming in, the agent will expand its worker pool to
+        handle more tasks concurrently. However, as the name suggests,
+        it will never exceed this number. allowing for the control of
+        resource usage. defaults to 5.
 
     ``disable_requiretty``:
 
-        disables the requiretty directive in the sudoers file. this is important if you plan on
-        running tasks that require sudo permissions.
+        disables the requiretty directive in the sudoers file. this is
+        important if you plan on running tasks that require sudo permissions.
         defaults to False.
 
     ``relocated``:
 
-        set this option to true if the virtualenv that will run this worker has been
-        relocated from a different machine. this will make the agent auto-configure the shabang of
-        every script in the 'bin' directory of the virtualenv to the proper runtime paths.
+        set this option to true if the virtualenv that will run this worker
+        has been relocated from a different machine. this will make the agent
+        auto-configure the shabang of every script in the 'bin' directory of
+        the virtualenv to the proper runtime paths.
         defaults to False.
 
-    :param process_management: The process management to use. Available options: init.d
+    :param process_management:
+        The process management to use. Available options: init.d
     :type process_management: str
 
     :param params: key-value parameters for the daemon.

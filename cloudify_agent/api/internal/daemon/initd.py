@@ -27,6 +27,10 @@ from cloudify_agent import VIRTUALENV
 
 class GenericLinuxDaemon(Daemon):
 
+    """
+    Implementation for the init.d process management.
+    """
+
     SCRIPT_DIR = '/etc/init.d'
     CONFIG_DIR = '/etc/default'
     PROCESS_MANAGEMENT = 'init.d'
@@ -43,6 +47,21 @@ class GenericLinuxDaemon(Daemon):
         )
 
     def create(self):
+
+        """
+        This method creates the following files:
+
+        1. an init.d script located under /etc/init.d
+        2. a configuration file localed under /etc/default
+        3. an includes file containing a comma separated list of modules
+           that will be imported at startup.
+
+        :return: The daemon name.
+        :rtype `str`
+
+        :raise RuntimeError: in case one the files already exists.
+        """
+
         self._validate_create()
         self._create_includes()
         self._create_script()
@@ -51,6 +70,26 @@ class GenericLinuxDaemon(Daemon):
     def start(self,
               interval=defaults.START_INTERVAL,
               timeout=defaults.STOP_TIMEOUT):
+
+        """
+        Start the daemon process by running an init.d service.
+
+        :param interval:
+            The interval in seconds to sleep when waiting
+            for the daemon to be ready.
+        :type interval: int
+
+        :param timeout:
+            The timeout in seconds to wait for
+            the daemon to be ready.
+        :type timeout: int
+
+        :raise RuntimeError: in case the agent failed to start in the
+        given amount of time.
+        :raise RuntimeError: in case an error happened during the agent
+        startup.
+        """
+
         self.runner.sudo(start_command(self))
         end_time = time.time() + timeout
         while time.time() < end_time:
@@ -66,6 +105,27 @@ class GenericLinuxDaemon(Daemon):
     def stop(self,
              interval=defaults.STOP_TIMEOUT,
              timeout=defaults.STOP_TIMEOUT):
+
+        """
+        Stop the init.d service.
+
+        :param interval:
+            The interval in seconds to sleep when waiting
+            for the daemon to stop.
+        :type interval: int
+
+        :param timeout:
+            The timeout in seconds to wait for
+            the daemon to stop.
+        :type timeout: int
+
+        :raise RuntimeError: in case the agent failed to be stopped in the
+        given amount of time.
+        :raise RuntimeError: in case an error happened during the agent
+        shutdown.
+
+        """
+
         self.runner.sudo(stop_command(self))
         end_time = time.time() + timeout
         while time.time() < end_time:
@@ -79,12 +139,31 @@ class GenericLinuxDaemon(Daemon):
                            .format(timeout))
 
     def delete(self):
+
+        """
+        Deletes all the files created on the create method.
+
+        :raise RuntimeError: in case the daemon process is still running.
+
+        """
+
         self._validate_delete()
         self.runner.sudo('rm {0}'.format(self.script_path))
         self.runner.sudo('rm {0}'.format(self.config_path))
         self.runner.sudo('rm {0}'.format(self.includes_file_path))
 
     def register(self, plugin):
+
+        """
+        This method inspects the files of a given plugin and add the
+        relevant modules to the includes file. This way, subsequent calls to
+        'start' will take the new modules under consideration.
+
+        :param plugin: The plugin name to register.
+        :type plugin: str
+
+        """
+
         plugin_paths = self._list_plugin_files(plugin)
 
         with open(self.includes_file_path) as include_file:
@@ -98,6 +177,20 @@ class GenericLinuxDaemon(Daemon):
             f.write(new_includes)
 
     def restart(self):
+
+        """
+        Restarts the daemon process by calling 'stop' and 'start'
+
+        :raise RuntimeError: in case the agent failed to start in the
+        given amount of time.
+        :raise RuntimeError: in case an error happened during the agent
+        startup.
+        :raise RuntimeError: in case the agent failed to be stopped in the
+        given amount of time.
+        :raise RuntimeError: in case an error happened during the agent
+        shutdown.
+        """
+
         self.stop()
         self.start()
 
@@ -139,25 +232,17 @@ class GenericLinuxDaemon(Daemon):
 
     def _validate_create(self):
 
-        def validate(path):
+        def _validate(path):
             if os.path.exists(path):
                 raise RuntimeError(
                     'Cannot create daemon {0}. {1} already exists.'
                     .format(self.name, path))
 
-        validate(self.script_path)
-        validate(self.config_path)
-        validate(self.includes_file_path)
+        _validate(self.script_path)
+        _validate(self.config_path)
+        _validate(self.includes_file_path)
 
     def _create_includes(self):
-
-        """
-        Creates an includes file which contains the modules
-        of the built-in plugins. These modules will be imported and
-        all containing operations will be registered.
-
-        """
-
         directory = os.path.dirname(self.includes_file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -168,14 +253,7 @@ class GenericLinuxDaemon(Daemon):
             f.write(','.join(includes))
 
     def _create_script(self):
-
-        """
-        Creates the daemon init script to be placed under /etc/init.d
-        Uses the template 'resources/celeryd.template'.
-
-        """
-
-        rendered = utils.rendered_template_to_tempfile(
+        rendered = utils.render_template_to_tempfile(
             template_path='celeryd.template',
             daemon_name=self.name,
             config_path=self.config_path
@@ -185,14 +263,7 @@ class GenericLinuxDaemon(Daemon):
         self.runner.sudo('chmod +x {0}'.format(self.script_path))
 
     def _create_config(self):
-
-        """
-        Creates the daemon configuration file. Will be placed under /etc/default
-        Uses the template 'resources/celeryd.conf.template'.
-
-        """
-
-        rendered = utils.rendered_template_to_tempfile(
+        rendered = utils.render_template_to_tempfile(
             template_path='celeryd.conf.template',
             queue=self.queue,
             workdir=self.workdir,
@@ -211,12 +282,6 @@ class GenericLinuxDaemon(Daemon):
         self.runner.sudo('rm {0}'.format(rendered))
 
     def _verify_no_celery_error(self):
-
-        """
-        Verifies no error was raised on celery startup.
-
-        """
-
         error_file_path = os.path.join(
             self.workdir,
             'celery_error.out')
@@ -240,8 +305,32 @@ class GenericLinuxDaemon(Daemon):
 
 
 def start_command(daemon):
+
+    """
+    Specifies the command to run when starting the daemon.
+
+    :param daemon: The daemon instance.
+    :type daemon: `cloudify_agent.api.internal.daemon.base.Daemon`
+
+    :return: The command to run.
+    :rtype: `str`
+
+    """
+
     return 'service {0} start'.format(daemon.name)
 
 
 def stop_command(daemon):
+
+    """
+    Specifies the command to run when stopping the daemon.
+
+    :param daemon: The daemon instance.
+    :type daemon: `cloudify_agent.api.internal.daemon.base.Daemon`
+
+    :return: The command to run.
+    :rtype: `str`
+
+    """
+
     return 'service {0} stop'.format(daemon.name)

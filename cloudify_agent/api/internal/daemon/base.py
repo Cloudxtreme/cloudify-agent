@@ -13,6 +13,7 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import uuid
 import os
 
 from cloudify.utils import LocalCommandRunner
@@ -23,9 +24,6 @@ from cloudify_agent.api import daemon_logger
 
 
 MANDATORY_PARAMS = [
-    'name',
-    'queue',
-    'host',
     'manager_ip',
     'user'
 ]
@@ -43,22 +41,25 @@ class Daemon(object):
     def __init__(self, **params):
 
         # Mandatory parameters
-        self._validate_mandatory(params)
+        self.validate_mandatory(params)
 
-        self.name = params['name']
-        self.queue = params['queue']
-        self.host = params['host']
         self.manager_ip = params['manager_ip']
         self.user = params['user']
 
         # Optional parameters
-        self._validate_optional(params)
+        self.validate_optional(params)
 
         broker_ip = params.get(
             'broker_ip') or self.manager_ip
         broker_port = params.get(
             'broker_port') or defaults.BROKER_PORT
 
+        self.name = params.get(
+            'name') or 'cloudify-agent-{0}'.format(uuid.uuid4())
+        self.queue = params.get(
+            'queue') or '{0}-queue'.format(self.name)
+        self.host = params.get(
+            'host') or '127.0.0.1'
         self.broker_url = params.get(
             'broker_url') or defaults.BROKER_URL.format(
             broker_ip,
@@ -89,10 +90,10 @@ class Daemon(object):
                              backend=self.broker_url)
 
     @staticmethod
-    def _validate_mandatory(params):
+    def validate_mandatory(params):
 
         """
-        Validates all mandatory parameters are given.
+        Validates that all mandatory parameters are given.
 
         :param params: parameters of the daemon.
         :type params: dict
@@ -109,7 +110,7 @@ class Daemon(object):
                 )
 
     @staticmethod
-    def _validate_optional(params):
+    def validate_optional(params):
 
         """
         Validates any optional parameters given to the daemon.
@@ -143,19 +144,73 @@ class Daemon(object):
                     .format(min_workers, max_workers))
 
     def create(self):
+
+        """
+        Create the daemon. This method must create all necessary configuration
+        of the daemon.
+
+        :return: The daemon name.
+        :rtype `str`
+        """
         raise NotImplementedError('Must be implemented by subclass')
 
     def start(self, interval, timeout):
+
+        """
+        Starts the daemon process.
+
+        :param interval:
+            The interval in seconds to sleep when waiting
+            for the daemon to be ready.
+        :type interval: int
+
+        :param timeout:
+            The timeout in seconds to wait for
+            the daemon to be ready.
+        :type timeout: int
+        """
         raise NotImplementedError('Must be implemented by subclass')
 
     def register(self, plugin):
+
+        """
+        Register an additional plugin. This method must enable the addition
+        of operations defined in the plugin.
+
+        :param plugin: The plugin name to register.
+        :type plugin: str
+        """
         raise NotImplementedError('Must be implemented by subclass')
 
     def stop(self, interval, timeout):
+
+        """
+        Stops the daemon process.
+
+        :param interval:
+            The interval in seconds to sleep when waiting
+            for the daemon to stop.
+        :type interval: int
+
+        :param timeout:
+            The timeout in seconds to wait for
+            the daemon to stop.
+        :type timeout: int
+        """
         raise NotImplementedError('Must be implemented by subclass')
 
     def delete(self):
+
+        """
+        Delete any resources created by the daemon.
+
+        """
         raise NotImplementedError('Must be implemented by subclass')
 
     def restart(self):
+
+        """
+        Restart the daemon process.
+
+        """
         raise NotImplementedError('Must be implemented by subclass')

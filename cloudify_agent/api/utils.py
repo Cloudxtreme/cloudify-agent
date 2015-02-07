@@ -21,26 +21,73 @@ from jinja2 import Template
 import cloudify_agent
 
 
-def rendered_template_to_tempfile(template_path, **values):
+def render_template_to_tempfile(template_path, **values):
+
+    """
+    Render a 'jinja' template resource to a temporary file.
+
+    :param template_path: relative path to the template.
+    :type template_path: str
+
+    :param values: keyword arguments passed to jinja.
+    :type values: dict
+
+    :return path to the temporary file.
+    :rtype `str`
+    """
+
     template = get_resource(template_path)
     rendered = Template(template).render(**values)
     return content_to_tempfile(rendered)
 
 
 def resource_to_tempfile(resource_path):
+
+    """
+    Copy a resource into a temporary file.
+
+    :param resource_path: relative path to the resource.
+    :type resource_path: str
+
+    :return path to the temporary file.
+    :rtype `str`
+    """
+
     resource = get_resource(resource_path)
     return content_to_tempfile(resource)
 
 
 def get_resource(resource_path):
+
+    """
+    Loads the resource into a string.
+
+    :param resource_path: relative path to the resource.
+    :type resource_path: str
+
+    :return the resource as a string.
+    :rtype `str`
+    """
+
     return pkg_resources.resource_string(
         cloudify_agent.__name__,
         os.path.join('resources', resource_path)
     )
 
 
-def content_to_tempfile(content, mode='r+'):
-    temp = tempfile.NamedTemporaryFile(mode=mode, delete=False)
+def content_to_tempfile(content):
+
+    """
+    Write string to a temporary file.
+
+    :param content:
+    :type content: str
+
+    :return path to the temporary file.
+    :rtype `str`
+    """
+
+    temp = tempfile.NamedTemporaryFile(mode='w', delete=False)
     with open(temp.name, 'r+') as f:
         f.write(content)
         f.write(os.linesep)

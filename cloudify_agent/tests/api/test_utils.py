@@ -33,13 +33,13 @@ class TestUtils(testtools.TestCase):
             self.assertEqual(f.read(), resource)
 
     def test_rendered_template_to_tempfile(self):
-        tempfile = utils.rendered_template_to_tempfile(
+        tempfile = utils.render_template_to_tempfile(
             template_path='celeryd.conf.template',
             workdir='workdir'
         )
         with open(tempfile) as f:
             rendered = f.read()
-            self.assertIn('CELERY_WORK_DIR=workdir', rendered)
+            self.assertTrue('CELERY_WORK_DIR=workdir' in rendered)
 
     def test_resource_to_tempfile(self):
         tempfile = utils.resource_to_tempfile(

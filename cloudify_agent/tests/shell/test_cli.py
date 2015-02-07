@@ -23,11 +23,11 @@ class TestCommandLine(BaseCommandLineTestCase):
     def test_exception_hook(self):
 
         @click.command()
-        def raise_error():
+        def _raise_error():
             raise RuntimeError('Error')
 
         from cloudify_agent.shell.cli import main
-        main.add_command(raise_error, 'raise-error')
+        main.add_command(_raise_error, 'raise-error')
         try:
             self._run('cloudify-agent raise-error')
         except RuntimeError:
@@ -38,14 +38,14 @@ class TestCommandLine(BaseCommandLineTestCase):
     def test_exception_hook_debug(self):
 
         @click.command()
-        def raise_error():
+        def _raise_error():
             raise RuntimeError('Error')
 
         from cloudify_agent.shell.cli import main
-        main.add_command(raise_error, 'raise-error')
+        main.add_command(_raise_error, 'raise-error')
         try:
             self._run('cloudify-agent --debug raise-error')
         except RuntimeError:
             import sys
             output = sys.excepthook(*sys.exc_info())
-            self.assertIn("raise RuntimeError('Error')", output)
+            self.assertTrue("raise RuntimeError('Error')" in output)

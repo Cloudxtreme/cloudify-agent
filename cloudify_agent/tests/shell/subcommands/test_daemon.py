@@ -88,3 +88,10 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
             function_name='register',
             args=['name', 'plugin']
         )
+
+    def test_required(self):
+        self._run_patched('cloudify-agent daemon create '
+                          '--manager-ip=manager '
+                          '--user=user',
+                          module=daemon,
+                          function_name='create')

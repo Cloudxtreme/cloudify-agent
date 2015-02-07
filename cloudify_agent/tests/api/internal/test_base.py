@@ -19,15 +19,11 @@ import os
 from cloudify_agent.api.internal.daemon.base import Daemon
 
 
-class TestDaemon(testtools.TestCase):
+class TestDaemonDefaults(testtools.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestDaemon, cls).setUpClass()
         cls.daemon = Daemon(
-            name='name',
-            queue='queue',
-            host='queue',
             manager_ip='manager_ip',
             user='user'
         )
@@ -47,3 +43,84 @@ class TestDaemon(testtools.TestCase):
     def test_default_broker_url(self):
         self.assertEqual('amqp://guest:guest@manager_ip:5672//',
                          self.daemon.broker_url)
+
+    def test_default_name(self):
+        self.assertTrue('cloudify-agent-' in self.daemon.name)
+
+    def test_default_queue(self):
+        self.assertEqual('{0}-queue'.format(
+            self.daemon.name),
+            self.daemon.queue)
+
+    def test_default_host(self):
+        self.assertEqual('127.0.0.1', self.daemon.host)
+
+
+class TestDaemonValidations(testtools.TestCase):
+
+    def test_missing_manager_ip(self):
+        try:
+            Daemon(
+                name='name',
+                queue='queue',
+                host='queue',
+                user='user'
+            )
+            self.fail('Expected ValueError due to missing manager_ip')
+        except ValueError as e:
+            self.assertTrue('manager_ip is mandatory' in e.message)
+
+    def test_missing_user(self):
+        try:
+            Daemon(
+                name='name',
+                queue='queue',
+                host='queue',
+                manager_ip='manager_ip'
+            )
+            self.fail('Expected ValueError due to missing user')
+        except ValueError as e:
+            self.assertTrue('user is mandatory' in e.message)
+
+    def test_bad_min_workers(self):
+        try:
+            Daemon(
+                name='name',
+                queue='queue',
+                host='queue',
+                manager_ip='manager_ip',
+                user='user',
+                min_workers='bad'
+            )
+        except ValueError as e:
+            self.assertTrue('min_workers is supposed to be a number' in
+                            e.message)
+
+    def test_bad_max_workers(self):
+        try:
+            Daemon(
+                name='name',
+                queue='queue',
+                host='queue',
+                manager_ip='manager_ip',
+                user='user',
+                max_workers='bad'
+            )
+        except ValueError as e:
+            self.assertTrue('max_workers is supposed to be a number' in
+                            e.message)
+
+    def test_min_workers_larger_than_max_workers(self):
+        try:
+            Daemon(
+                name='name',
+                queue='queue',
+                host='queue',
+                manager_ip='manager_ip',
+                user='user',
+                max_workers=4,
+                min_workers=5
+            )
+        except ValueError as e:
+            self.assertTrue('min_workers cannot be greater than max_workers'
+                            in e.message)

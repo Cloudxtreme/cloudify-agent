@@ -177,8 +177,8 @@ class DaemonFactory(object):
     def save(daemon):
 
         """
-        Saves a daemon to the local storage. The daemon is stored in json format and contains
-        all daemon properties.
+        Saves a daemon to the local storage. The daemon is stored in json
+        format and contains all daemon properties.
 
         :param daemon: The daemon instance to save.
         :type daemon: `cloudify_agent.api.internal.daemon.base.Daemon`

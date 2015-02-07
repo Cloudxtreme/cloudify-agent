@@ -22,33 +22,30 @@ from cloudify_agent.shell import env
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
-              required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
 @click.option('--queue',
-              help='The name of the queue to register the agent to. [{0}]'
+              help='The name of the queue to register the agent to. [env {0}]'
                    .format(env.CLOUDIFY_DAEMON_QUEUE),
-              required=True,
               envvar=env.CLOUDIFY_DAEMON_QUEUE)
 @click.option('--host',
-              help='A resolvable IP address for this host. [{0}]'
+              help='A resolvable IP address for this host. [env {0}]'
                    .format(env.CLOUDIFY_AGENT_HOST),
-              required=True,
               envvar=env.CLOUDIFY_AGENT_HOST)
 @click.option('--manager-ip',
-              help='The manager IP to connect to. [{0}]'
+              help='The manager IP to connect to. [env {0}]'
                    .format(env.CLOUDIFY_MANAGER_IP),
               required=True,
               envvar=env.CLOUDIFY_MANAGER_IP)
 @click.option('--user',
-              help='The user to create this daemon under. [{0}]'
+              help='The user to create this daemon under. [env {0}]'
                    .format(env.CLOUDIFY_DAEMON_USER),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_USER)
 @click.option('--workdir',
               help='Working directory for runtime files (pid, log). '
-                   'Defaults to current working directory. [{0}]'
+                   'Defaults to current working directory. [env {0}]'
                    .format(env.CLOUDIFY_DAEMON_BASEDIR),
               envvar=env.CLOUDIFY_DAEMON_BASEDIR)
 @click.option('--broker-ip',
@@ -58,31 +55,32 @@ from cloudify_agent.shell import env
                    .format(env.CLOUDIFY_BROKER_IP),
               envvar=env.CLOUDIFY_BROKER_IP)
 @click.option('--broker-port',
-              help='The broker port to connect to. [{0}]'
+              help='The broker port to connect to. [env {0}]'
                    .format(env.CLOUDIFY_BROKER_PORT),
               envvar=env.CLOUDIFY_BROKER_PORT)
 @click.option('--broker-url',
               help='The broker url to connect to. If this '
                    'option is specified, the broker-ip and '
-                   'broker-port options are ignored. [{0}]'
+                   'broker-port options are ignored. [env {0}]'
               .format(env.CLOUDIFY_BROKER_URL),
               envvar=env.CLOUDIFY_BROKER_URL)
 @click.option('--manager-port',
-              help='The manager REST gateway port to connect to. [{0}]'
+              help='The manager REST gateway port to connect to. [env {0}]'
                    .format(env.CLOUDIFY_MANAGER_PORT),
               envvar=env.CLOUDIFY_MANAGER_PORT)
 @click.option('--min-workers',
               help='Minimum number of workers for '
-                   'the autoscale configuration. [{0}]'
+                   'the autoscale configuration. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_MIN_WORKERS),
               envvar=env.CLOUDIFY_DAEMON_MIN_WORKERS)
 @click.option('--max-workers',
               help='Maximum number of workers for '
-                   'the autoscale configuration. [{0}]'
+                   'the autoscale configuration. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_MAX_WORKERS),
               envvar=env.CLOUDIFY_DAEMON_MAX_WORKERS)
 @click.option('--disable-requiretty/--no-disable-requiretty',
-              help='Disables the requiretty directive in the sudoers file'
+              help='Disables the requiretty directive in the sudoers file. ['
+                   'env {0}]'
               .format(env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY),
               default=False,
               envvar=env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY)
@@ -90,13 +88,13 @@ from cloudify_agent.shell import env
               help='Indication that this virtualenv was relocated. '
                    'If this option is passed, an auto-correction '
                    'to the virtualenv shabang entries '
-                   'will be performed [{0}]'
+                   'will be performed [env {0}]'
               .format(env.CLOUDIFY_RELOCATED),
               default=False,
               envvar=env.CLOUDIFY_RELOCATED)
 @click.option('--process-management',
               help='The process management system to use '
-                   'when creating the daemon. [{0}]'
+                   'when creating the daemon. [env {0}]'
                    .format(env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT),
               type=click.Choice(['init.d']),
               default='init.d',
@@ -116,7 +114,7 @@ def create(process_management, **params):
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
@@ -139,7 +137,7 @@ def register(name, plugin):
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
@@ -165,7 +163,7 @@ def start(name, interval, timeout):
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
@@ -191,7 +189,7 @@ def stop(name, interval, timeout):
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
@@ -209,7 +207,7 @@ def restart(name):
 
 @click.command()
 @click.option('--name',
-              help='The name of the daemon. [{0}]'
+              help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
