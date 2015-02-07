@@ -18,6 +18,7 @@ import sys
 from cloudify.utils import setup_default_logger
 
 VIRTUALENV = os.path.dirname(os.path.dirname(sys.executable))
-CLOUDIFY_AGENT_STORAGE = '/var/lib/cloudify-agent'
+CLOUDIFY_AGENT_STORAGE = os.path.expanduser(
+    '~/.cloudify-agent/agents')
 
 global_logger = setup_default_logger('cloudify-agent')
