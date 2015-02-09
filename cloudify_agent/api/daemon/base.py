@@ -121,7 +121,6 @@ class Daemon(object):
         every script in the 'bin' directory of the virtualenv to the proper
         runtime paths. defaults to False.
 
-
     """
 
     # override this when adding implementations.

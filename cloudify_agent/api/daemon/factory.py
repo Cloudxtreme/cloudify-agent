@@ -129,7 +129,7 @@ class DaemonFactory(object):
         :type params: dict
 
         :return: A daemon instance.
-        :rtype `cloudify_agent.api.internal.daemon.base.Daemon`
+        :rtype `cloudify_agent.api.daemon.base.Daemon`
         """
 
         daemon = DaemonFactory._find_implementation(process_management)
@@ -150,7 +150,7 @@ class DaemonFactory(object):
         :type name: str
 
         :return: A daemon instance.
-        :rtype `cloudify_agent.api.internal.daemon.base.Daemon`
+        :rtype `cloudify_agent.api.daemon.base.Daemon`
 
         :raise IOError: in case the daemon file does not exist.
         """
@@ -180,7 +180,7 @@ class DaemonFactory(object):
         format and contains all daemon properties.
 
         :param daemon: The daemon instance to save.
-        :type daemon: `cloudify_agent.api.internal.daemon.base.Daemon`
+        :type daemon: cloudify_agent.api.daemon.base.Daemon
         """
 
         runner = LocalCommandRunner(logger=api_logger)
