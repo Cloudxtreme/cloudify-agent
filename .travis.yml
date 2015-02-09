@@ -2,12 +2,12 @@ language: python
 
 python:
   - 2.7
-  - 2.6
 
 services:
     - rabbitmq
 
 env:
+  - TOX_ENV=docs
   - TOX_ENV=flake8
   - TOX_ENV=py27
   - TOX_ENV=py26
