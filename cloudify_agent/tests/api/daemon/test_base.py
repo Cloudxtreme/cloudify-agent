@@ -13,10 +13,10 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import testtools
 import os
+import testtools
 
-from cloudify_agent.api.internal.daemon.base import Daemon
+from cloudify_agent.api.daemon.base import Daemon
 
 
 class TestDaemonDefaults(testtools.TestCase):

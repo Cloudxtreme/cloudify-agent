@@ -43,8 +43,7 @@ setup(
     packages=[
         'cloudify_agent',
         'cloudify_agent.api',
-        'cloudify_agent.api.internal',
-        'cloudify_agent.api.internal.daemon',
+        'cloudify_agent.api.daemon',
         'cloudify_agent.shell',
         'cloudify_agent.shell.subcommands'
     ],

@@ -13,19 +13,20 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import testtools
 import uuid
 
-from cloudify_agent.api.internal.daemon.factory import DaemonFactory
-from cloudify_agent.tests.api.internal import CLOUDIFY_STORAGE_FOLDER
-from cloudify_agent.tests.api.internal import SudoLessLocalCommandRunner
-from cloudify_agent.tests.api.internal import patch_unless_travis
-from cloudify_agent.tests.api.internal import travis
+import testtools
+
+from cloudify_agent.api.daemon.factory import DaemonFactory
+from cloudify_agent.tests.api.daemon import CLOUDIFY_STORAGE_FOLDER
+from cloudify_agent.tests.api.daemon import SudoLessLocalCommandRunner
+from cloudify_agent.tests.api.daemon import patch_unless_travis
+from cloudify_agent.tests.api.daemon import travis
 
 
-@patch_unless_travis('cloudify_agent.api.internal.daemon.factory.CLOUDIFY_AGENT_STORAGE',  # NOQA
+@patch_unless_travis('cloudify_agent.api.daemon.factory.CLOUDIFY_AGENT_STORAGE',  # NOQA
                      CLOUDIFY_STORAGE_FOLDER)
-@patch_unless_travis('cloudify_agent.api.internal.daemon.factory.LocalCommandRunner',  # NOQA
+@patch_unless_travis('cloudify_agent.api.daemon.factory.LocalCommandRunner',  # NOQA
                      SudoLessLocalCommandRunner)
 class TestDaemonFactory(testtools.TestCase):
 

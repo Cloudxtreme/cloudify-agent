@@ -15,9 +15,9 @@
 
 import click
 
-from cloudify_agent.api import daemon as daemon_api
 from cloudify_agent.api import defaults
 from cloudify_agent.shell import env
+from cloudify_agent.api.daemon.factory import DaemonFactory
 
 
 @click.command()
@@ -107,9 +107,14 @@ def create(process_management, **params):
     """
 
     click.echo('Creating...')
-    daemon_name = daemon_api.create(process_management, **params)
+    daemon = DaemonFactory.new(
+        process_management=process_management,
+        **params
+    )
+    daemon.create()
+    DaemonFactory.save(daemon)
     click.echo('Successfully created daemon: {0}'
-               .format(daemon_name))
+               .format(daemon.name))
 
 
 @click.command()
@@ -130,7 +135,8 @@ def register(name, plugin):
     """
 
     click.echo('Registering...')
-    daemon_api.register(name, plugin)
+    daemon = DaemonFactory.load(name)
+    daemon.register(plugin)
     click.echo('Successfully registered {0} with daemon: {1}'
                .format(plugin, name))
 
@@ -157,7 +163,11 @@ def start(name, interval, timeout):
     """
 
     click.echo('Starting...')
-    daemon_api.start(name, interval, timeout)
+    daemon = DaemonFactory.load(name)
+    daemon.start(
+        interval=interval,
+        timeout=timeout
+    )
     click.echo('Successfully started daemon: {0}'.format(name))
 
 
@@ -183,7 +193,11 @@ def stop(name, interval, timeout):
     """
 
     click.echo('Stopping...')
-    daemon_api.stop(name, interval, timeout)
+    daemon = DaemonFactory.load(name)
+    daemon.stop(
+        interval=interval,
+        timeout=timeout
+    )
     click.secho('Successfully stopped daemon: {0}'.format(name))
 
 
@@ -201,7 +215,8 @@ def restart(name):
     """
 
     click.echo('Restarting...')
-    daemon_api.restart(name)
+    daemon = DaemonFactory.load(name)
+    daemon.restart()
     click.echo('Successfully restarted daemon: {0}'.format(name))
 
 
@@ -219,5 +234,7 @@ def delete(name):
     """
 
     click.echo('Deleting...')
-    daemon_api.delete(name)
+    daemon = DaemonFactory.load(name)
+    daemon.delete()
+    DaemonFactory.delete(name)
     click.secho('Successfully deleted daemon: {0}'.format(name))

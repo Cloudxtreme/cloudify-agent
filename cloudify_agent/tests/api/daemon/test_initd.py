@@ -16,14 +16,13 @@
 import uuid
 import os
 
-
-from cloudify_agent.api.internal.daemon.initd import GenericLinuxDaemon
+from cloudify_agent.api.daemon.initd import GenericLinuxDaemon
 from cloudify_agent import VIRTUALENV
 from cloudify_agent.tests import resources
-from cloudify_agent.tests.api.internal import BaseDaemonLiveTestCase
-from cloudify_agent.tests.api.internal import SudoLessLocalCommandRunner
-from cloudify_agent.tests.api.internal import patch_unless_travis
-from cloudify_agent.tests.api.internal import travis
+from cloudify_agent.tests.api.daemon import BaseDaemonLiveTestCase
+from cloudify_agent.tests.api.daemon import SudoLessLocalCommandRunner
+from cloudify_agent.tests.api.daemon import patch_unless_travis
+from cloudify_agent.tests.api.daemon import travis
 
 
 def _sudoless_start_command(daemon):
@@ -39,19 +38,19 @@ CONFIG_DIR = '/tmp/etc/default'
 
 
 @patch_unless_travis(
-    'cloudify_agent.api.internal.daemon.base.LocalCommandRunner',
+    'cloudify_agent.api.daemon.base.LocalCommandRunner',
     SudoLessLocalCommandRunner)
 @patch_unless_travis(
-    'cloudify_agent.api.internal.daemon.initd.GenericLinuxDaemon.SCRIPT_DIR',
+    'cloudify_agent.api.daemon.initd.GenericLinuxDaemon.SCRIPT_DIR',
     SCRIPT_DIR)
 @patch_unless_travis(
-    'cloudify_agent.api.internal.daemon.initd.GenericLinuxDaemon.CONFIG_DIR',
+    'cloudify_agent.api.daemon.initd.GenericLinuxDaemon.CONFIG_DIR',
     CONFIG_DIR)
 @patch_unless_travis(
-    'cloudify_agent.api.internal.daemon.initd.start_command',
+    'cloudify_agent.api.daemon.initd.start_command',
     _sudoless_start_command)
 @patch_unless_travis(
-    'cloudify_agent.api.internal.daemon.initd.stop_command',
+    'cloudify_agent.api.daemon.initd.stop_command',
     _sudoless_stop_command)
 class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
 

@@ -50,7 +50,7 @@ BUILT_IN_TASKS = [
     'windows_plugin_installer.tasks.install'
 ]
 
-CLOUDIFY_STORAGE_FOLDER = '/tmp/cloudify-agent/agents'
+CLOUDIFY_STORAGE_FOLDER = '/tmp/.cloudify-agent/agents'
 
 
 class SudoLessLocalCommandRunner(LocalCommandRunner):

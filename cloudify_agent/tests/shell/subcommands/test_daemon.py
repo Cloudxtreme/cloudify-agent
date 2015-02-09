@@ -13,85 +13,100 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-from cloudify_agent.api import daemon
+from mock import patch
+
 from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
 
+@patch('cloudify_agent.shell.subcommands.daemon.DaemonFactory')
 class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     PROCESS_MANAGEMENT = 'init.d'
 
-    def test_create(self):
-        self.assert_function_called(
-            'cloudify-agent daemon create --name=name --relocated '
-            '--queue=queue --host=127.0.0.1 '
-            '--manager-ip=127.0.0.1 --user=user',
-            module=daemon,
-            function_name='create',
-            args=['init.d'],
-            kwargs={
-                'name': 'name',
-                'queue': 'queue',
-                'host': '127.0.0.1',
-                'manager_ip': '127.0.0.1',
-                'user': 'user',
-                'workdir': None,
-                'broker_ip': None,
-                'broker_port': None,
-                'broker_url': None,
-                'manager_port': None,
-                'min_workers': None,
-                'max_workers': None,
-                'disable_requiretty': False,
-                'relocated': True
-            }
+    def test_create(self, factory):
+        self._run('cloudify-agent daemon create --name=name --relocated '
+                  '--queue=queue --host=127.0.0.1 '
+                  '--manager-ip=127.0.0.1 --user=user')
+
+        factory_new = factory.new
+        factory_new.assert_called_once_with(
+            name='name',
+            queue='queue',
+            host='127.0.0.1',
+            user='user',
+            manager_ip='127.0.0.1',
+            process_management='init.d',
+            disable_requiretty=False,
+            relocated=True,
+            broker_ip=None,
+            workdir=None,
+            broker_url=None,
+            max_workers=None,
+            min_workers=None,
+            broker_port=None,
+            manager_port=None
         )
 
-    def test_start(self):
-        self.assert_function_called(
-            'cloudify-agent daemon start --name=name '
-            '--interval 5 --timeout 20',
-            module=daemon,
-            function_name='start',
-            args=['name', 5, 20]
+        daemon = factory_new.return_value
+        daemon.create.assert_called_once_with()
+
+        factory_save = factory.save
+        factory_save.assert_called_once_with(daemon)
+
+    def test_start(self, factory):
+        self._run('cloudify-agent daemon start --name=name '
+                  '--interval 5 --timeout 20')
+
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
+
+        daemon = factory_load.return_value
+        daemon.start.assert_called_once_with(
+            interval=5,
+            timeout=20
         )
 
-    def test_stop(self):
-        self.assert_function_called(
-            'cloudify-agent daemon stop --name=name '
-            '--interval 5 --timeout 20',
-            module=daemon,
-            function_name='stop',
-            args=['name', 5, 20]
+    def test_stop(self, factory):
+        self._run('cloudify-agent daemon stop --name=name '
+                  '--interval 5 --timeout 20')
+
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
+
+        daemon = factory_load.return_value
+        daemon.stop.assert_called_once_with(
+            interval=5,
+            timeout=20
         )
 
-    def test_delete(self):
-        self.assert_function_called(
-            'cloudify-agent daemon delete --name=name',
-            module=daemon,
-            function_name='delete',
-            args=['name']
-        )
+    def test_delete(self, factory):
+        self._run('cloudify-agent daemon delete --name=name')
 
-    def test_restart(self):
-        self.assert_function_called(
-            'cloudify-agent daemon restart --name=name',
-            module=daemon,
-            function_name='restart',
-            args=['name']
-        )
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
 
-    def test_register(self):
-        self.assert_function_called(
-            'cloudify-agent daemon register --name=name --plugin=plugin',
-            module=daemon,
-            function_name='register',
-            args=['name', 'plugin']
-        )
+        daemon = factory_load.return_value
+        daemon.delete.assert_called_once_with()
 
-    def test_required(self):
-        self._run_patched('cloudify-agent daemon create '
-                          '--manager-ip=manager '
-                          '--user=user',
-                          module=daemon,
-                          function_name='create')
+    def test_restart(self, factory):
+        self._run('cloudify-agent daemon restart --name=name')
+
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
+
+        daemon = factory_load.return_value
+        daemon.restart.assert_called_once_with()
+
+    def test_register(self, factory):
+        self._run('cloudify-agent daemon register '
+                  '--name=name --plugin=plugin')
+
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
+
+        daemon = factory_load.return_value
+        daemon.register.assert_called_once_with('plugin')
+
+    def test_required(self, _):
+        self._run('cloudify-agent daemon create --manager-ip=manager '
+                  '--user=user')

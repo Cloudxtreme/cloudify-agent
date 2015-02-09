@@ -17,10 +17,9 @@ import os
 import time
 
 from cloudify.utils import LocalCommandRunner
-
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
-from cloudify_agent.api.internal.daemon.base import Daemon
+from cloudify_agent.api.daemon.base import Daemon
 from cloudify_agent.api import defaults
 from cloudify_agent import VIRTUALENV
 
@@ -74,16 +73,6 @@ class GenericLinuxDaemon(Daemon):
         """
         Start the daemon process by running an init.d service.
 
-        :param interval:
-            The interval in seconds to sleep when waiting
-            for the daemon to be ready.
-        :type interval: int
-
-        :param timeout:
-            The timeout in seconds to wait for
-            the daemon to be ready.
-        :type timeout: int
-
         :raise RuntimeError: in case the agent failed to start in the
         given amount of time.
         :raise RuntimeError: in case an error happened during the agent
@@ -108,16 +97,6 @@ class GenericLinuxDaemon(Daemon):
 
         """
         Stop the init.d service.
-
-        :param interval:
-            The interval in seconds to sleep when waiting
-            for the daemon to stop.
-        :type interval: int
-
-        :param timeout:
-            The timeout in seconds to wait for
-            the daemon to stop.
-        :type timeout: int
 
         :raise RuntimeError: in case the agent failed to be stopped in the
         given amount of time.
@@ -158,9 +137,6 @@ class GenericLinuxDaemon(Daemon):
         This method inspects the files of a given plugin and add the
         relevant modules to the includes file. This way, subsequent calls to
         'start' will take the new modules under consideration.
-
-        :param plugin: The plugin name to register.
-        :type plugin: str
 
         """
 

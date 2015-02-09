@@ -19,8 +19,7 @@ import tempfile
 
 from cloudify.exceptions import CommandExecutionException
 from cloudify.utils import LocalCommandRunner
-
-from cloudify_agent.api.internal.daemon.base import Daemon
+from cloudify_agent.api.daemon.base import Daemon
 from cloudify_agent.api import api_logger
 from cloudify_agent.api import utils
 from cloudify_agent import VIRTUALENV
