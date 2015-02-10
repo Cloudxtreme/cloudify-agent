@@ -63,7 +63,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
 
     PROCESS_MANAGEMENT = 'init.d'
 
-    def test_create_disable_requiretty(self):
+    def test_configure_disable_requiretty(self):
         if not travis():
             raise RuntimeError('Error! This test cannot be executed '
                                'outside of the travis CI '
@@ -78,7 +78,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             workdir=self.temp_folder,
             disable_requiretty=True
         )
-        daemon.create()
+        daemon.configure()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin-sudo'
                         .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
@@ -100,7 +100,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
                             .format(VIRTUALENV),
                             stdout_pipe=False)
 
-    def test_create(self):
+    def test_configure(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -109,7 +109,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))
         self.assertTrue(os.path.exists(daemon.includes_file_path))
@@ -123,7 +123,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         daemon.stop()
         daemon.delete()
@@ -140,7 +140,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
@@ -154,7 +154,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         daemon.stop()
         self.assert_daemon_dead(self.queue)
@@ -168,7 +168,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
                         .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
@@ -194,7 +194,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
                         .format(VIRTUALENV,
@@ -213,7 +213,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
                             .format(VIRTUALENV),
                             stdout_pipe=False)
 
-    def test_create_twice(self):
+    def test_configure_twice(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -222,10 +222,10 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
-        self.assertRaises(RuntimeError, daemon.create)
+        daemon.configure()
+        self.assertRaises(RuntimeError, daemon.configure)
 
-    def test_create_twice_only_script_path_exists(self):
+    def test_configure_twice_only_script_path_exists(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -234,15 +234,15 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
 
         # delete includes and config files
         self.runner.sudo('rm {0}'.format(daemon.includes_file_path))
         self.runner.sudo('rm {0}'.format(daemon.config_path))
 
-        self.assertRaises(RuntimeError, daemon.create)
+        self.assertRaises(RuntimeError, daemon.configure)
 
-    def test_create_twice_only_config_path_exists(self):
+    def test_configure_twice_only_config_path_exists(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -251,15 +251,15 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
 
         # delete includes and script files
         self.runner.sudo('rm {0}'.format(daemon.includes_file_path))
         self.runner.sudo('rm {0}'.format(daemon.script_path))
 
-        self.assertRaises(RuntimeError, daemon.create)
+        self.assertRaises(RuntimeError, daemon.configure)
 
-    def test_create_twice_only_includes_path_exists(self):
+    def test_configure_twice_only_includes_path_exists(self):
         daemon = GenericLinuxDaemon(
             name=self.name,
             queue=self.queue,
@@ -268,13 +268,13 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
 
         # delete config and script files
         self.runner.sudo('rm {0}'.format(daemon.config_path))
         self.runner.sudo('rm {0}'.format(daemon.script_path))
 
-        self.assertRaises(RuntimeError, daemon.create)
+        self.assertRaises(RuntimeError, daemon.configure)
 
     def test_start_with_error(self):
         daemon = GenericLinuxDaemon(
@@ -285,7 +285,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin-error'
                         .format(VIRTUALENV,
                                 os.path.dirname(resources.__file__)),
@@ -312,7 +312,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         try:
             daemon.start(timeout=-1)
         except RuntimeError as e:
@@ -327,7 +327,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
@@ -344,7 +344,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         try:
             daemon.stop(timeout=-1)
@@ -360,7 +360,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         daemon.stop()
         self.assert_daemon_dead(self.queue)
@@ -378,7 +378,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon1.create()
+        daemon1.configure()
 
         daemon1.start()
         self.assert_daemon_alive(queue1)
@@ -394,7 +394,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon2.create()
+        daemon2.configure()
 
         daemon2.start()
         self.assert_daemon_alive(queue2)
@@ -409,6 +409,6 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
-        daemon.create()
+        daemon.configure()
         daemon.start()
         self.assertRaises(RuntimeError, daemon.delete)

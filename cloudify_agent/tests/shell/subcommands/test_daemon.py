@@ -48,10 +48,18 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
         daemon = factory_new.return_value
-        daemon.create.assert_called_once_with()
 
         factory_save = factory.save
         factory_save.assert_called_once_with(daemon)
+
+    def test_configure(self, factory):
+        self._run('cloudify-agent daemon configure --name=name')
+
+        factory_load = factory.load
+        factory_load.assert_called_once_with('name')
+
+        daemon = factory_load.return_value
+        daemon.configure.assert_called_once_with()
 
     def test_start(self, factory):
         self._run('cloudify-agent daemon start --name=name '

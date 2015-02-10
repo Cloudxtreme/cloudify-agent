@@ -102,7 +102,7 @@ from cloudify_agent.api.daemon.factory import DaemonFactory
 def create(process_management, **params):
 
     """
-    Creates the necessary configuration files for the daemon.
+    Creates and stores the daemon parameters.
 
     """
 
@@ -111,9 +111,28 @@ def create(process_management, **params):
         process_management=process_management,
         **params
     )
-    daemon.create()
     DaemonFactory.save(daemon)
     click.echo('Successfully created daemon: {0}'
+               .format(daemon.name))
+
+
+@click.command()
+@click.option('--name',
+              help='The name of the daemon. [env {0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
+              required=True,
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+def configure(name):
+
+    """
+    Configures the daemon scripts and configuration files.
+
+    """
+
+    click.echo('Configuring...')
+    daemon = DaemonFactory.load(name)
+    daemon.configure()
+    click.echo('Successfully configured daemon: {0}'
                .format(daemon.name))
 
 

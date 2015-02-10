@@ -231,11 +231,11 @@ class Daemon(object):
                     '[min_workers={0}, max_workers={1}]'
                     .format(min_workers, max_workers))
 
-    def create(self):
+    def configure(self):
 
         """
-        Create the daemon. This method must create all necessary configuration
-        of the daemon.
+        Configures the daemon. This method must create all necessary
+        configuration of the daemon.
 
         :return: The daemon name.
         :rtype `str`

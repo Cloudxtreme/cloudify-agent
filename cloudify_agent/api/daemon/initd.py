@@ -45,7 +45,7 @@ class GenericLinuxDaemon(Daemon):
             '{0}-includes'.format(self.name)
         )
 
-    def create(self):
+    def configure(self):
 
         """
         This method creates the following files:
@@ -61,7 +61,7 @@ class GenericLinuxDaemon(Daemon):
         :raise RuntimeError: in case one the files already exists.
         """
 
-        self._validate_create()
+        self._validate_configure()
         self._create_includes()
         self._create_script()
         self._create_config()
@@ -206,7 +206,7 @@ class GenericLinuxDaemon(Daemon):
                 'Cannot delete daemon {0}. Process is still running'
                 .format(self.name))
 
-    def _validate_create(self):
+    def _validate_configure(self):
 
         def _validate(path):
             if os.path.exists(path):
