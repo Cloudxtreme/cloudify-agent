@@ -95,9 +95,8 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         self.celery = Celery(broker='amqp://',
                              backend='amqp://')
         self.logger = setup_default_logger(
-            'cloudify-agent.tests.init-d',
+            'cloudify-agent.tests.api.pm',
             level=logging.DEBUG)
-        logging.getLogger('cloudify-agent.api.daemon').setLevel(logging.DEBUG)
         if travis():
             # travis CI can run sudo commands
             self.runner = LocalCommandRunner(self.logger)
@@ -143,10 +142,10 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         destination = 'celery.{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
-        self.assertIsNotNone(stats)
+        self.assertTrue(stats is not None)
 
     def assert_daemon_dead(self, queue):
         destination = 'celery.{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
-        self.assertIsNone(stats)
+        self.assertTrue(stats is not None)

@@ -15,16 +15,16 @@
 
 from mock import patch
 
-from cloudify_agent.tests.shell import BaseCommandLineTestCase
+from cloudify_agent.tests.shell.commands import BaseCommandLineTestCase
 
 
-@patch('cloudify_agent.shell.subcommands.daemon.DaemonFactory')
+@patch('cloudify_agent.shell.commands.daemon.DaemonFactory')
 class TestDaemonCommandLine(BaseCommandLineTestCase):
 
     PROCESS_MANAGEMENT = 'init.d'
 
     def test_create(self, factory):
-        self._run('cloudify-agent daemon create --name=name --relocated '
+        self._run('cloudify-agent daemon create --name=name '
                   '--queue=queue --host=127.0.0.1 '
                   '--manager-ip=127.0.0.1 --user=user')
 
@@ -36,8 +36,6 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
             user='user',
             manager_ip='127.0.0.1',
             process_management='init.d',
-            disable_requiretty=False,
-            relocated=True,
             broker_ip=None,
             workdir=None,
             broker_url=None,
@@ -48,6 +46,7 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         )
 
         daemon = factory_new.return_value
+        daemon.create.assert_called_once_with()
 
         factory_save = factory.save
         factory_save.assert_called_once_with(daemon)

@@ -19,7 +19,8 @@ import time
 from cloudify.utils import LocalCommandRunner
 from cloudify_agent.included_plugins import included_plugins
 from cloudify_agent.api import utils
-from cloudify_agent.api.daemon.base import Daemon
+from cloudify_agent.api.pm.base import Daemon
+from cloudify_agent.api import exceptions
 from cloudify_agent.api import defaults
 from cloudify_agent import VIRTUALENV
 
@@ -45,37 +46,38 @@ class GenericLinuxDaemon(Daemon):
             '{0}-includes'.format(self.name)
         )
 
+    def create(self):
+        pass
+
     def configure(self):
 
         """
         This method creates the following files:
 
         1. an init.d script located under /etc/init.d
-        2. a configuration file localed under /etc/default
+        2. a configuration file located under /etc/default
         3. an includes file containing a comma separated list of modules
            that will be imported at startup.
 
         :return: The daemon name.
         :rtype `str`
 
-        :raise RuntimeError: in case one the files already exists.
         """
 
-        self._validate_configure()
         self._create_includes()
         self._create_script()
         self._create_config()
 
     def start(self,
-              interval=defaults.START_INTERVAL,
-              timeout=defaults.STOP_TIMEOUT):
+              timeout=defaults.START_TIMEOUT,
+              interval=defaults.START_INTERVAL):
 
         """
         Start the daemon process by running an init.d service.
 
-        :raise RuntimeError: in case the agent failed to start in the
+        :raise DaemonStartupTimeout: in case the agent failed to start in the
         given amount of time.
-        :raise RuntimeError: in case an error happened during the agent
+        :raise DaemonException: in case an error happened during the agent
         startup.
         """
 
@@ -87,20 +89,18 @@ class GenericLinuxDaemon(Daemon):
                 return
             time.sleep(interval)
         self._verify_no_celery_error()
-        raise RuntimeError('Failed starting agent. '
-                           'waited for {0} seconds.'
-                           .format(timeout))
+        raise exceptions.DaemonStartupTimeout(timeout)
 
     def stop(self,
-             interval=defaults.STOP_TIMEOUT,
-             timeout=defaults.STOP_TIMEOUT):
+             timeout=defaults.STOP_TIMEOUT,
+             interval=defaults.STOP_INTERVAL):
 
         """
         Stop the init.d service.
 
-        :raise RuntimeError: in case the agent failed to be stopped in the
-        given amount of time.
-        :raise RuntimeError: in case an error happened during the agent
+        :raise DaemonStartupTimeout: in case the agent failed to be stopped
+        in the given amount of time.
+        :raise DaemonException: in case an error happened during the agent
         shutdown.
 
         """
@@ -113,23 +113,25 @@ class GenericLinuxDaemon(Daemon):
                 return
             time.sleep(interval)
         self._verify_no_celery_error()
-        raise RuntimeError('Failed stopping Cloudify agent. '
-                           'waited for {0} seconds.'
-                           .format(timeout))
+        raise exceptions.DaemonShutdownTimeout(timeout)
 
     def delete(self):
 
         """
         Deletes all the files created on the create method.
 
-        :raise RuntimeError: in case the daemon process is still running.
+        :raise DaemonStillRunningException:
+        in case the daemon process is still running.
 
         """
 
         self._validate_delete()
-        self.runner.sudo('rm {0}'.format(self.script_path))
-        self.runner.sudo('rm {0}'.format(self.config_path))
-        self.runner.sudo('rm {0}'.format(self.includes_file_path))
+        if os.path.exists(self.script_path):
+            self.runner.sudo('rm {0}'.format(self.script_path))
+        if os.path.exists(self.config_path):
+            self.runner.sudo('rm {0}'.format(self.config_path))
+        if os.path.exists(self.includes_file_path):
+            self.runner.sudo('rm {0}'.format(self.includes_file_path))
 
     def register(self, plugin):
 
@@ -152,23 +154,27 @@ class GenericLinuxDaemon(Daemon):
         with open(self.includes_file_path, 'w') as f:
             f.write(new_includes)
 
-    def restart(self):
+    def restart(self,
+                start_timeout=defaults.START_TIMEOUT,
+                start_interval=defaults.START_INTERVAL,
+                stop_timeout=defaults.STOP_TIMEOUT,
+                stop_interval=defaults.STOP_INTERVAL):
 
         """
         Restarts the daemon process by calling 'stop' and 'start'
 
-        :raise RuntimeError: in case the agent failed to start in the
+        :raise DaemonStartupTimeout: in case the agent failed to start in the
         given amount of time.
-        :raise RuntimeError: in case an error happened during the agent
-        startup.
-        :raise RuntimeError: in case the agent failed to be stopped in the
-        given amount of time.
-        :raise RuntimeError: in case an error happened during the agent
-        shutdown.
+        :raise DaemonShutdownTimeout: in case the agent failed to be stopped
+        in the given amount of time.
+        :raise DaemonException: in case an error happened during startup or
+        shutdown
         """
 
-        self.stop()
-        self.start()
+        self.stop(timeout=stop_timeout,
+                  interval=stop_interval)
+        self.start(timeout=start_timeout,
+                   interval=start_interval)
 
     @staticmethod
     def _list_plugin_files(plugin_name):
@@ -202,23 +208,13 @@ class GenericLinuxDaemon(Daemon):
     def _validate_delete(self):
         stats = self._get_worker_stats()
         if stats:
-            raise RuntimeError(
-                'Cannot delete daemon {0}. Process is still running'
-                .format(self.name))
-
-    def _validate_configure(self):
-
-        def _validate(path):
-            if os.path.exists(path):
-                raise RuntimeError(
-                    'Cannot create daemon {0}. {1} already exists.'
-                    .format(self.name, path))
-
-        _validate(self.script_path)
-        _validate(self.config_path)
-        _validate(self.includes_file_path)
+            raise exceptions.DaemonStillRunningException(self.name)
 
     def _create_includes(self):
+        if os.path.exists(self.includes_file_path):
+            self.logger.debug('Not creating includes '
+                              'since it already exists.')
+            return
         directory = os.path.dirname(self.includes_file_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -229,8 +225,12 @@ class GenericLinuxDaemon(Daemon):
             f.write(','.join(includes))
 
     def _create_script(self):
-        rendered = utils.render_template_to_tempfile(
-            template_path='celeryd.template',
+        if os.path.exists(self.script_path):
+            self.logger.debug('Not creating script '
+                              'since it already exists.')
+            return
+        rendered = utils.render_template_to_file(
+            template_path='initd/celeryd.template',
             daemon_name=self.name,
             config_path=self.config_path
         )
@@ -239,8 +239,12 @@ class GenericLinuxDaemon(Daemon):
         self.runner.sudo('chmod +x {0}'.format(self.script_path))
 
     def _create_config(self):
-        rendered = utils.render_template_to_tempfile(
-            template_path='celeryd.conf.template',
+        if os.path.exists(self.config_path):
+            self.logger.debug('Not creating config '
+                              'since it already exists.')
+            return
+        rendered = utils.render_template_to_file(
+            template_path='initd/celeryd.conf.template',
             queue=self.queue,
             workdir=self.workdir,
             manager_ip=self.manager_ip,
@@ -270,7 +274,7 @@ class GenericLinuxDaemon(Daemon):
             with open(error_file_path) as f:
                 error = f.read()
             os.remove(error_file_path)
-            raise RuntimeError(error)
+            raise exceptions.DaemonException(error)
 
     def _get_worker_stats(self):
         destination = 'celery.{0}'.format(self.queue)

@@ -23,8 +23,8 @@ This module is loaded on celery startup.
 """
 
 
-broker_url = os.environ['CELERY_BROKER_URL']
-work_folder = os.environ['CELERYD_WORK_DIR']
+broker_url = os.environ.get('CELERY_BROKER_URL', 'amqp://')
+work_folder = os.environ.get('CELERYD_WORK_DIR')
 
 
 # This attribute is used as the celery App instance.
@@ -36,20 +36,21 @@ app = Celery(broker=broker_url,
              backend=broker_url)
 
 
-# Setting a new exception hook to catch any exceptions
-# on celery startup and write them to a file. This file
-# is later read for querying if celery has started successfully.
-current_excepthook = sys.excepthook
+if work_folder:
 
+    # Setting a new exception hook to catch any exceptions
+    # on celery startup and write them to a file. This file
+    # is later read for querying if celery has started successfully.
+    current_excepthook = sys.excepthook
 
-def new_excepthook(exception_type, value, the_traceback):
-    if not os.path.exists(work_folder):
-        os.makedirs(work_folder)
-    error_dump_path = os.path.join(work_folder, 'celery_error.out')
-    with open(error_dump_path, 'w') as f:
-        f.write('Type: {0}\n'.format(exception_type))
-        f.write('Value: {0}\n'.format(value))
-        traceback.print_tb(the_traceback, file=f)
-    current_excepthook(exception_type, value, the_traceback)
+    def new_excepthook(exception_type, value, the_traceback):
+        if not os.path.exists(work_folder):
+            os.makedirs(work_folder)
+        error_dump_path = os.path.join(work_folder, 'celery_error.out')
+        with open(error_dump_path, 'w') as f:
+            f.write('Type: {0}\n'.format(exception_type))
+            f.write('Value: {0}\n'.format(value))
+            traceback.print_tb(the_traceback, file=f)
+        current_excepthook(exception_type, value, the_traceback)
 
-sys.excepthook = new_excepthook
+    sys.excepthook = new_excepthook

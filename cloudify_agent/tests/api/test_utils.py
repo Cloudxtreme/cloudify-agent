@@ -23,18 +23,19 @@ from cloudify_agent.api import utils
 class TestUtils(testtools.TestCase):
 
     def test_get_resource(self):
-        resource = utils.get_resource('celeryd.conf.template')
+        resource = utils.get_resource('initd/celeryd.conf.template')
         path_to_resource = os.path.join(
             os.path.dirname(cloudify_agent.__file__),
             'resources',
+            'initd',
             'celeryd.conf.template'
         )
         with open(path_to_resource) as f:
             self.assertEqual(f.read(), resource)
 
-    def test_rendered_template_to_tempfile(self):
-        tempfile = utils.render_template_to_tempfile(
-            template_path='celeryd.conf.template',
+    def test_rendered_template_to_file(self):
+        tempfile = utils.render_template_to_file(
+            template_path='initd/celeryd.conf.template',
             workdir='workdir'
         )
         with open(tempfile) as f:
@@ -43,11 +44,12 @@ class TestUtils(testtools.TestCase):
 
     def test_resource_to_tempfile(self):
         tempfile = utils.resource_to_tempfile(
-            resource_path='celeryd.conf.template'
+            resource_path='initd/celeryd.conf.template'
         )
         path_to_resource = os.path.join(
             os.path.dirname(cloudify_agent.__file__),
             'resources',
+            'initd',
             'celeryd.conf.template'
         )
         with open(path_to_resource) as expected:
@@ -57,7 +59,7 @@ class TestUtils(testtools.TestCase):
                                  actual.read())
 
     def test_content_to_tempfile(self):
-        tempfile = utils.content_to_tempfile(
+        tempfile = utils.content_to_file(
             content='content'
         )
         with open(tempfile) as f:
@@ -67,7 +69,7 @@ class TestUtils(testtools.TestCase):
 
     def test_run_script_from_temp_file(self):
         content = '#!/bin/bash\necho success'
-        path = utils.content_to_tempfile(content)
+        path = utils.content_to_file(content)
         os.system('chmod +x {0}'.format(path))
         code = os.system(path)
         self.assertEqual(0, code)

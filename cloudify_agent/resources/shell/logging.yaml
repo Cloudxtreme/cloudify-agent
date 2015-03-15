@@ -1,0 +1,26 @@
+###########################################
+# Logging configuration
+###########################################
+logging:
+
+  # path to a file where logs will be saved.
+  filename: {{ logfile }}
+
+  # default format for all loggers
+  format: '%(message)s'
+  file_format: '%(asctime)s [%(levelname)s] [%(name)s] %(message)s'
+
+  # configuring level per logger, explicit formats can also be specified here
+  loggers:
+
+    cloudify_agent.api.pm.initd:
+      level: info
+
+    cloudify_agent.api.utils:
+      level: info
+
+    cloudify_agent.shell.daemon_factory:
+      level: info
+
+    cloudify_agent.shell.utils:
+      level: info

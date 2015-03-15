@@ -43,22 +43,24 @@ setup(
     packages=[
         'cloudify_agent',
         'cloudify_agent.api',
-        'cloudify_agent.api.daemon',
+        'cloudify_agent.api.pm',
         'cloudify_agent.shell',
+        'cloudify_agent.shell.commands',
         'cloudify_agent.shell.subcommands'
     ],
     package_data={
         'cloudify_agent': [
-            'resources/celeryd.conf.template',
-            'resources/celeryd.template',
-            'resources/disable-requiretty.sh'],
+            'resources/initd/celeryd.conf.template',
+            'resources/initd/celeryd.template',
+            'resources/initd/disable-requiretty.sh',
+            'resources/shell/config.yaml'],
         },
     description="Cloudify's Agent",
     install_requires=install_requires,
     license='LICENSE',
     entry_points={
         'console_scripts': [
-            'cloudify-agent = cloudify_agent.shell.cli:main',
+            'cloudify-agent = cloudify_agent.shell.main:main',
         ]
     }
 )

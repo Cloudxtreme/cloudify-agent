@@ -18,5 +18,4 @@ import logging
 from cloudify.utils import setup_default_logger
 
 
-api_logger = setup_default_logger('cloudify-agent.api', logging.INFO)
-daemon_logger = setup_default_logger('cloudify-agent.api.daemon', logging.INFO)
+logger = setup_default_logger('cloudify-agent.api', logging.INFO)

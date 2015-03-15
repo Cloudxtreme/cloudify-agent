@@ -13,32 +13,28 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import logging
+import tempfile
+import os
+
 import testtools
-import sys
-from mock import patch
 
-from cloudify_agent.shell import cli
+from cloudify.utils import setup_default_logger
 
 
-class BaseCommandLineTestCase(testtools.TestCase):
+class BaseShellTest(testtools.TestCase):
 
-    def _run(self, command):
-        sys.argv = command.split()
-        try:
-            cli.main()
-        except SystemExit:
-            pass
+    def setUp(self):
+        super(BaseShellTest, self).setUp()
+        self.logger = setup_default_logger(
+            'cloudify-agent.tests.shell',
+            level=logging.DEBUG)
+        self.currdir = os.getcwd()
+        self.workdir = tempfile.mkdtemp(
+            prefix='cloudify-agent-shell-tests-')
+        self.logger.info('Working directory: {0}'.format(self.workdir))
+        os.chdir(self.workdir)
 
-    def assert_function_called(self, cli_command, module, function_name,
-                               args=None, kwargs=None):
-        if not kwargs:
-            kwargs = {}
-        if not args:
-            args = []
-        with patch.object(module, function_name) as mock:
-            self._run(cli_command)
-            mock.assert_called_with(*args, **kwargs)
-
-    def _run_patched(self, cli_command, module, function_name):
-        with patch.object(module, function_name):
-            self._run(cli_command)
+    def tearDown(self):
+        super(BaseShellTest, self).tearDown()
+        os.chdir(self.currdir)

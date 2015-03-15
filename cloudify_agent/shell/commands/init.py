@@ -13,3 +13,24 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import click
+
+from cloudify_agent.shell import utils
+from cloudify_agent.shell.main import handle_failures
+
+
+@click.command()
+@click.option('--logfile',
+              help='Path to a file where logs will be recorded',
+              required=False)
+@handle_failures
+def init(logfile):
+
+    """
+    Creates the cloudify-agent logging configuration file inside the
+    working directory
+    """
+
+    click.echo('Initializing...')
+    utils.initialize(logfile)
+    click.echo('Successfully initialized cloudify-agent')

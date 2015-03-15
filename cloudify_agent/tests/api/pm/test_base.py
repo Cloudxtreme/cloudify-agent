@@ -14,9 +14,12 @@
 #  * limitations under the License.
 
 import os
+
 import testtools
 
-from cloudify_agent.api.daemon.base import Daemon
+
+from cloudify_agent.api.pm.base import Daemon
+from cloudify_agent.api import errors
 
 
 class TestDaemonDefaults(testtools.TestCase):
@@ -67,7 +70,7 @@ class TestDaemonValidations(testtools.TestCase):
                 user='user'
             )
             self.fail('Expected ValueError due to missing manager_ip')
-        except ValueError as e:
+        except errors.MissingMandatoryParamError as e:
             self.assertTrue('manager_ip is mandatory' in e.message)
 
     def test_missing_user(self):
@@ -79,7 +82,7 @@ class TestDaemonValidations(testtools.TestCase):
                 manager_ip='manager_ip'
             )
             self.fail('Expected ValueError due to missing user')
-        except ValueError as e:
+        except errors.MissingMandatoryParamError as e:
             self.assertTrue('user is mandatory' in e.message)
 
     def test_bad_min_workers(self):
@@ -92,7 +95,7 @@ class TestDaemonValidations(testtools.TestCase):
                 user='user',
                 min_workers='bad'
             )
-        except ValueError as e:
+        except errors.DaemonParametersError as e:
             self.assertTrue('min_workers is supposed to be a number' in
                             e.message)
 
@@ -106,7 +109,7 @@ class TestDaemonValidations(testtools.TestCase):
                 user='user',
                 max_workers='bad'
             )
-        except ValueError as e:
+        except errors.DaemonParametersError as e:
             self.assertTrue('max_workers is supposed to be a number' in
                             e.message)
 
@@ -121,6 +124,6 @@ class TestDaemonValidations(testtools.TestCase):
                 max_workers=4,
                 min_workers=5
             )
-        except ValueError as e:
+        except errors.DaemonParametersError as e:
             self.assertTrue('min_workers cannot be greater than max_workers'
                             in e.message)

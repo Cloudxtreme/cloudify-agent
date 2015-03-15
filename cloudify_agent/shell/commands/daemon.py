@@ -17,7 +17,8 @@ import click
 
 from cloudify_agent.api import defaults
 from cloudify_agent.shell import env
-from cloudify_agent.api.daemon.factory import DaemonFactory
+from cloudify_agent.shell.daemon_factory import DaemonFactory
+from cloudify_agent.shell.main import handle_failures
 
 
 @click.command()
@@ -78,20 +79,6 @@ from cloudify_agent.api.daemon.factory import DaemonFactory
                    'the autoscale configuration. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_MAX_WORKERS),
               envvar=env.CLOUDIFY_DAEMON_MAX_WORKERS)
-@click.option('--disable-requiretty/--no-disable-requiretty',
-              help='Disables the requiretty directive in the sudoers file. ['
-                   'env {0}]'
-              .format(env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY),
-              default=False,
-              envvar=env.CLOUDIFY_DAEMON_DISABLE_REQUIRETTY)
-@click.option('--relocated/--no-relocated',
-              help='Indication that this virtualenv was relocated. '
-                   'If this option is passed, an auto-correction '
-                   'to the virtualenv shabang entries '
-                   'will be performed [env {0}]'
-              .format(env.CLOUDIFY_RELOCATED),
-              default=False,
-              envvar=env.CLOUDIFY_RELOCATED)
 @click.option('--process-management',
               help='The process management system to use '
                    'when creating the daemon. [env {0}]'
@@ -99,6 +86,7 @@ from cloudify_agent.api.daemon.factory import DaemonFactory
               type=click.Choice(['init.d']),
               default='init.d',
               envvar=env.CLOUDIFY_DAEMON_PROCESS_MANAGEMENT)
+@handle_failures
 def create(process_management, **params):
 
     """
@@ -111,6 +99,7 @@ def create(process_management, **params):
         process_management=process_management,
         **params
     )
+    daemon.create()
     DaemonFactory.save(daemon)
     click.echo('Successfully created daemon: {0}'
                .format(daemon.name))
@@ -122,6 +111,7 @@ def create(process_management, **params):
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
+@handle_failures
 def configure(name):
 
     """
@@ -145,6 +135,7 @@ def configure(name):
 @click.option('--plugin',
               help='The plugin name. As stated in its setup.py file.',
               required=True)
+@handle_failures
 def register(name, plugin):
 
     """
@@ -174,6 +165,7 @@ def register(name, plugin):
               help='The timeout in seconds to wait '
                    'for the daemon to be ready.',
               default=defaults.START_TIMEOUT)
+@handle_failures
 def start(name, interval, timeout):
 
     """
@@ -204,6 +196,7 @@ def start(name, interval, timeout):
               help='The timeout in seconds to wait '
                    'for the daemon to stop.',
               default=defaults.STOP_TIMEOUT)
+@handle_failures
 def stop(name, interval, timeout):
 
     """
@@ -226,6 +219,7 @@ def stop(name, interval, timeout):
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
+@handle_failures
 def restart(name):
 
     """
@@ -245,6 +239,7 @@ def restart(name):
               .format(env.CLOUDIFY_DAEMON_NAME),
               required=True,
               envvar=env.CLOUDIFY_DAEMON_NAME)
+@handle_failures
 def delete(name):
 
     """

@@ -18,9 +18,10 @@ import os
 from celery import Celery
 
 from cloudify.utils import LocalCommandRunner
+from cloudify.utils import setup_default_logger
 
 from cloudify_agent.api import defaults
-from cloudify_agent.api import daemon_logger
+from cloudify_agent.api import errors
 
 
 MANDATORY_PARAMS = [
@@ -33,7 +34,7 @@ class Daemon(object):
 
     """
     Base class for daemon implementations.
-    Following is all the possible daemon keyword arguments:
+    Following is all the common daemon keyword arguments:
 
     ``name``:
 
@@ -107,20 +108,6 @@ class Daemon(object):
         suggests, it will never exceed this number. allowing for the control
         of resource usage. defaults to 5.
 
-    ``disable_requiretty``:
-
-        disables the requiretty directive in the sudoers file. this is
-        important if you plan on running tasks that require sudo permissions.
-        defaults to False.
-
-    ``relocated``:
-
-        set this option to true if the virtualenv that will run this worker
-        has been relocated from a different machine. this will make the
-        agent auto-configure the shabang of
-        every script in the 'bin' directory of the virtualenv to the proper
-        runtime paths. defaults to False.
-
     """
 
     # override this when adding implementations.
@@ -158,17 +145,16 @@ class Daemon(object):
             'min_workers') or defaults.MIN_WORKERS
         self.max_workers = params.get(
             'max_workers') or defaults.MAX_WORKERS
-        self.disable_requiretty = params.get(
-            'disable_requiretty') or defaults.DISABLE_REQUIRETTY
         self.workdir = params.get(
             'workdir') or os.getcwd()
-        self.relocated = params.get(
-            'relocated') or defaults.RELOCATED
 
+        # save as a property so that it will be persisted in the json files
         self.process_management = self.PROCESS_MANAGEMENT
 
         # configure logger
-        self.logger = daemon_logger
+        self.logger = setup_default_logger(
+            'cloudify_agent.api.pm.{0}'
+            .format(self.PROCESS_MANAGEMENT))
 
         # configure command runner
         self.runner = LocalCommandRunner(logger=self.logger)
@@ -186,16 +172,14 @@ class Daemon(object):
         :param params: parameters of the daemon.
         :type params: dict
 
-        :raise ValueError: in case one of the mandatory parameters is missing.
+        :raise MissingMandatoryParamError:
+        in case one of the mandatory parameters is missing.
         """
 
         for param in MANDATORY_PARAMS:
             value = params.get(param)
             if not value:
-                raise ValueError(
-                    '{0} is mandatory'
-                    .format(param)
-                )
+                raise errors.MissingMandatoryParamError(param)
 
     @staticmethod
     def validate_optional(params):
@@ -206,7 +190,8 @@ class Daemon(object):
         :param params: parameters of the daemon.
         :type params: dict
 
-        :raise ValueError: in case one of the parameters is faulty.
+        :raise DaemonConfigurationError:
+        in case one of the parameters is faulty.
         """
 
         min_workers = params.get('min_workers')
@@ -214,22 +199,36 @@ class Daemon(object):
 
         if min_workers:
             if not str(min_workers).isdigit():
-                raise ValueError('min_workers is supposed to be a number '
-                                 'but is: {0}'.format(min_workers))
+                raise errors.DaemonParametersError(
+                    'min_workers is supposed to be a number '
+                    'but is: {0}'
+                    .format(min_workers)
+                )
             min_workers = int(min_workers)
 
         if max_workers:
             if not str(max_workers).isdigit():
-                raise ValueError('max_workers is supposed to be a number '
-                                 'but is: {0}'.format(max_workers))
+                raise errors.DaemonParametersError(
+                    'max_workers is supposed to be a number '
+                    'but is: {0}'
+                    .format(max_workers)
+                )
             max_workers = int(max_workers)
 
         if min_workers and max_workers:
             if min_workers > max_workers:
-                raise ValueError(
+                raise errors.DaemonParametersError(
                     'min_workers cannot be greater than max_workers '
                     '[min_workers={0}, max_workers={1}]'
                     .format(min_workers, max_workers))
+
+    def create(self):
+
+        """
+        Creates any necessary resources for the daemon. This method MUST be
+        able to execute without sudo permissions.
+        """
+        raise NotImplementedError('Must be implemented by subclass')
 
     def configure(self):
 
@@ -247,14 +246,12 @@ class Daemon(object):
         """
         Starts the daemon process.
 
-        :param interval:
-            The interval in seconds to sleep when waiting
-            for the daemon to be ready.
+        :param interval: the interval in seconds to sleep when waiting for
+        the daemon to be ready.
         :type interval: int
 
-        :param timeout:
-            The timeout in seconds to wait for
-            the daemon to be ready.
+        :param timeout: the timeout in seconds to wait for the daemon to be
+        ready.
         :type timeout: int
         """
         raise NotImplementedError('Must be implemented by subclass')
@@ -275,14 +272,11 @@ class Daemon(object):
         """
         Stops the daemon process.
 
-        :param interval:
-            The interval in seconds to sleep when waiting
-            for the daemon to stop.
+        :param interval: the interval in seconds to sleep when waiting for
+        the daemon to stop.
         :type interval: int
 
-        :param timeout:
-            The timeout in seconds to wait for
-            the daemon to stop.
+        :param timeout: the timeout in seconds to wait for the daemon to stop.
         :type timeout: int
         """
         raise NotImplementedError('Must be implemented by subclass')
@@ -295,10 +289,30 @@ class Daemon(object):
         """
         raise NotImplementedError('Must be implemented by subclass')
 
-    def restart(self):
+    def restart(self,
+                start_timeout=defaults.START_TIMEOUT,
+                start_interval=defaults.START_INTERVAL,
+                stop_timeout=defaults.STOP_TIMEOUT,
+                stop_interval=defaults.STOP_INTERVAL):
 
         """
         Restart the daemon process.
+
+        :param start_interval: the interval in seconds to sleep when waiting
+        for the daemon to start.
+        :type start_interval: int
+
+        :param start_timeout: The timeout in seconds to wait for the daemon
+        to start.
+        :type start_timeout: int
+
+        :param stop_interval: the interval in seconds to sleep when waiting
+        for the daemon to stop.
+        :type stop_interval: int
+
+        :param stop_timeout: the timeout in seconds to wait for the daemon
+        to stop.
+        :type stop_timeout: int
 
         """
         raise NotImplementedError('Must be implemented by subclass')

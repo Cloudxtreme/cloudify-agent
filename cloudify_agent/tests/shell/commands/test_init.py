@@ -13,20 +13,18 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-import sys
+import os
 
-from celery import __main__
+from cloudify_agent.shell import utils
+from cloudify_agent.tests.shell.commands import BaseCommandLineTestCase
 
-from cloudify_agent.tests.shell import BaseCommandLineTestCase
 
+class TestInitCommandLine(BaseCommandLineTestCase):
 
-class TestWorkerCommandLine(BaseCommandLineTestCase):
+    def test_init(self):
+        self._run('cloudify-agent init')
+        logfile = os.path.join(
+            utils.get_init_directory(),
+            'logging.yaml')
+        self.assertTrue(os.path.exists(logfile))
 
-    def test_worker(self):
-        self.assert_function_called(
-            'cloudify-agent worker -- --queue=queue',
-            module=__main__,
-            function_name='main',
-            kwargs={}
-        )
-        self.assertEqual(['celery', 'worker', '--queue=queue'], sys.argv)
