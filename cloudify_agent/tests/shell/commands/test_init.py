@@ -27,4 +27,3 @@ class TestInitCommandLine(BaseCommandLineTestCase):
             utils.get_init_directory(),
             'logging.yaml')
         self.assertTrue(os.path.exists(logfile))
-

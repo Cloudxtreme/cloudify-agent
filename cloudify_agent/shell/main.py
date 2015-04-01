@@ -70,7 +70,6 @@ def handle_failures(func):
     return wrapper
 
 
-
 @click.group()
 @click.option('--debug', default=False, is_flag=True)
 def main(debug):

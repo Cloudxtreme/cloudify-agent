@@ -19,8 +19,6 @@ from cloudify_agent.api import exceptions as api_exceptions
 from cloudify_agent.api import errors as api_errors
 from cloudify_agent.tests.shell.commands import BaseCommandLineTestCase
 from cloudify_agent.shell.main import handle_failures
-from cloudify_agent.shell import exceptions
-from cloudify_agent.shell import errors
 
 
 class TestCommandLine(BaseCommandLineTestCase):
