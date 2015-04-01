@@ -114,7 +114,7 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         os.chdir(self.currdir)
         pong = self.celery.control.ping()
         if pong:
-            self.runner.run("pkill -9 -f 'celery.bin.celeryd'")
+            self.runner.run("pkill -9 -f 'celery'")
 
     def _smakedirs(self, dirs):
         if not os.path.exists(dirs):
@@ -127,7 +127,7 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
     def assert_registered_tasks(self, queue, additional_tasks=None):
         if not additional_tasks:
             additional_tasks = set()
-        destination = 'celery.{0}'.format(queue)
+        destination = 'celery@{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         registered = inspect.registered() or {}
 
@@ -140,13 +140,13 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         self.assertEqual(expected_tasks, daemon_tasks)
 
     def assert_daemon_alive(self, queue):
-        destination = 'celery.{0}'.format(queue)
+        destination = 'celery@{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         self.assertTrue(stats is not None)
 
     def assert_daemon_dead(self, queue):
-        destination = 'celery.{0}'.format(queue)
+        destination = 'celery@{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
         self.assertTrue(stats is None)

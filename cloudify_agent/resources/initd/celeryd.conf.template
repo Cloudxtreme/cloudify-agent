@@ -16,6 +16,7 @@ export CELERY_TASK_SERIALIZER=json
 export CELERY_RESULT_SERIALIZER=json
 export CELERY_RESULT_BACKEND=${CELERY_BROKER_URL}
 export CELERYD_WORK_DIR={{ workdir }}
+export C_FORCE_ROOT="true"
 
 # Daemon variables, used by the daemonization script
 CELERYD_GROUP={{ user }}
@@ -23,8 +24,7 @@ CELERYD_USER={{ user }}
 CELERYD_PID_FILE="{{ workdir }}/${WORKER_QUEUE}-celery.pid"
 CELERYD_LOG_FILE="{{ workdir }}/${WORKER_QUEUE}-celery.log"
 CELERYD_ENV_DIR={{ virtualenv_path }}
-CELERYD_MULTI="${CELERYD_ENV_DIR}/bin/celeryd-multi"
+CELERY_BIN="${CELERYD_ENV_DIR}/bin/celery"
 CELERYD_LOG_LEVEL=debug
 CELERY_INCLUDES=$(cat {{ includes_path }})
-CELERYD_OPTS="--events -Q ${WORKER_QUEUE} --include=${CELERY_INCLUDES}
---hostname=${WORKER_QUEUE} --autoscale={{ max_workers }},{{ min_workers }} --maxtasksperchild=10 -Ofair --without-gossip --without-mingle"
+CELERYD_OPTS="--events -Q ${WORKER_QUEUE} --include=${CELERY_INCLUDES} --hostname=${WORKER_QUEUE} --autoscale={{ max_workers }},{{ min_workers }} --maxtasksperchild=10 -Ofair --without-gossip --without-mingle"

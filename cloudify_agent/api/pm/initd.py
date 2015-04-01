@@ -282,7 +282,7 @@ class GenericLinuxDaemon(Daemon):
             raise exceptions.DaemonException(error)
 
     def _get_worker_stats(self):
-        destination = 'celery.{0}'.format(self.queue)
+        destination = 'celery@{0}'.format(self.queue)
         inspect = self.celery.control.inspect(
             destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
