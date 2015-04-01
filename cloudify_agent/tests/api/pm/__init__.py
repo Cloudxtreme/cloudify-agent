@@ -106,6 +106,7 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
         self.currdir = os.getcwd()
         self.username = getpass.getuser()
+        self.logger.info('Working directory: {0}'.format(self.temp_folder))
         os.chdir(self.temp_folder)
 
     def tearDown(self):
@@ -148,4 +149,4 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         destination = 'celery.{0}'.format(queue)
         inspect = self.celery.control.inspect(destination=[destination])
         stats = (inspect.stats() or {}).get(destination)
-        self.assertTrue(stats is not None)
+        self.assertTrue(stats is None)

@@ -41,7 +41,7 @@ class GenericLinuxDaemon(Daemon):
         # init.d specific configuration
         self.script_path = os.path.join(self.SCRIPT_DIR, self.name)
         self.config_path = os.path.join(self.CONFIG_DIR, self.name)
-        self.includes_file_path = os.path.join(
+        self.includes_path = os.path.join(
             self.workdir,
             '{0}-includes'.format(self.name)
         )
@@ -50,6 +50,8 @@ class GenericLinuxDaemon(Daemon):
         pass
 
     def configure(self):
+
+        # TODO - check what this method should return
 
         """
         This method creates the following files:
@@ -125,18 +127,21 @@ class GenericLinuxDaemon(Daemon):
 
         """
 
-        self._validate_delete()
+        stats = self._get_worker_stats()
+        if stats:
+            raise exceptions.DaemonStillRunningException(self.name)
+
         if os.path.exists(self.script_path):
             self.runner.sudo('rm {0}'.format(self.script_path))
         if os.path.exists(self.config_path):
             self.runner.sudo('rm {0}'.format(self.config_path))
-        if os.path.exists(self.includes_file_path):
-            self.runner.sudo('rm {0}'.format(self.includes_file_path))
+        if os.path.exists(self.includes_path):
+            self.runner.sudo('rm {0}'.format(self.includes_path))
 
     def register(self, plugin):
 
         """
-        This method inspects the files of a given plugin and add the
+        This method inspects the files of a given plugin and adds the
         relevant modules to the includes file. This way, subsequent calls to
         'start' will take the new modules under consideration.
 
@@ -144,14 +149,14 @@ class GenericLinuxDaemon(Daemon):
 
         plugin_paths = self._list_plugin_files(plugin)
 
-        with open(self.includes_file_path) as include_file:
+        with open(self.includes_path) as include_file:
             includes = include_file.read()
         new_includes = '{0},{1}'.format(includes, ','.join(plugin_paths))
 
-        if os.path.exists(self.includes_file_path):
-            os.remove(self.includes_file_path)
+        if os.path.exists(self.includes_path):
+            os.remove(self.includes_path)
 
-        with open(self.includes_file_path, 'w') as f:
+        with open(self.includes_path, 'w') as f:
             f.write(new_includes)
 
     def restart(self,
@@ -205,20 +210,15 @@ class GenericLinuxDaemon(Daemon):
                     .replace('/', '.').replace('.py', '').strip())
         return module_paths
 
-    def _validate_delete(self):
-        stats = self._get_worker_stats()
-        if stats:
-            raise exceptions.DaemonStillRunningException(self.name)
-
     def _create_includes(self):
-        if os.path.exists(self.includes_file_path):
+        if os.path.exists(self.includes_path):
             self.logger.debug('Not creating includes '
                               'since it already exists.')
             return
-        directory = os.path.dirname(self.includes_file_path)
+        directory = os.path.dirname(self.includes_path)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        with open(self.includes_file_path, 'w') as f:
+        with open(self.includes_path, 'w') as f:
             includes = []
             for plugin in included_plugins:
                 includes.extend(self._list_plugin_files(plugin))
@@ -240,6 +240,11 @@ class GenericLinuxDaemon(Daemon):
 
     def _create_config(self):
         if os.path.exists(self.config_path):
+
+            # TODO check for configuration conflicts
+            # in case there is a conflict we should raise an error.
+            # if the configuration is the same we can just leave it like so.
+
             self.logger.debug('Not creating config '
                               'since it already exists.')
             return
@@ -254,7 +259,7 @@ class GenericLinuxDaemon(Daemon):
             user=self.user,
             min_workers=self.min_workers,
             max_workers=self.max_workers,
-            includes_file_path=self.includes_file_path,
+            includes_path=self.includes_path,
             virtualenv_path=VIRTUALENV
         )
 

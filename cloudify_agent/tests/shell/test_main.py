@@ -25,23 +25,6 @@ from cloudify_agent.shell import errors
 
 class TestCommandLine(BaseCommandLineTestCase):
 
-    def test_exception_hook(self):
-
-        @click.command()
-        @handle_failures
-        def _raise_error():
-            raise RuntimeError('Error')
-
-        from cloudify_agent.shell.main import main
-        main.add_command(_raise_error, 'raise-error')
-        try:
-            self._run('cloudify-agent raise-error')
-            self.fail('Expected failure of command execution')
-        except RuntimeError:
-            import sys
-            output = sys.excepthook(*sys.exc_info())
-            self.assertEqual('[FATAL] Error', output)
-
     def test_api_exceptions_conversion(self):
 
         @click.command()
@@ -71,20 +54,3 @@ class TestCommandLine(BaseCommandLineTestCase):
             self.fail('Expected failure of command execution')
         except SystemExit as e:
             self.assertEqual(e.code, 201)
-
-    def test_exception_hook_debug(self):
-
-        @click.command()
-        @handle_failures
-        def _raise_error():
-            raise RuntimeError('Error')
-
-        from cloudify_agent.shell.main import main
-        main.add_command(_raise_error, 'raise-error')
-        try:
-            self._run('cloudify-agent --debug raise-error')
-            self.fail('Expected failure of command execution')
-        except RuntimeError:
-            import sys
-            output = sys.excepthook(*sys.exc_info())
-            self.assertTrue("raise RuntimeError('Error')" in output)

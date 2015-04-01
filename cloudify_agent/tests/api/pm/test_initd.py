@@ -83,6 +83,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             workdir=self.temp_folder
         )
         daemon.create()
+
+        # check for idempotency
         daemon.create()
 
     def test_configure(self):
@@ -97,11 +99,13 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.configure()
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))
-        self.assertTrue(os.path.exists(daemon.includes_file_path))
+        self.assertTrue(os.path.exists(daemon.includes_path))
+
+        # check for idempotency
         daemon.configure()
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))
-        self.assertTrue(os.path.exists(daemon.includes_file_path))
+        self.assertTrue(os.path.exists(daemon.includes_path))
 
     def test_start(self):
         daemon = GenericLinuxDaemon(
@@ -116,6 +120,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.start()
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
+
+        # check for idempotency
         daemon.start()
         self.assert_daemon_alive(self.queue)
         self.assert_registered_tasks(daemon.queue)
@@ -175,6 +181,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.start()
         daemon.stop()
         self.assert_daemon_dead(self.queue)
+
+        # check for idempotency
         daemon.stop()
         self.assert_daemon_dead(self.queue)
 
@@ -209,11 +217,13 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
         daemon.delete()
         self.assertFalse(os.path.exists(daemon.script_path))
         self.assertFalse(os.path.exists(daemon.config_path))
-        self.assertFalse(os.path.exists(daemon.includes_file_path))
+        self.assertFalse(os.path.exists(daemon.includes_path))
+
+        # check for idempotency
         daemon.delete()
         self.assertFalse(os.path.exists(daemon.script_path))
         self.assertFalse(os.path.exists(daemon.config_path))
-        self.assertFalse(os.path.exists(daemon.includes_file_path))
+        self.assertFalse(os.path.exists(daemon.includes_path))
 
     def test_delete_before_stop(self):
         daemon = GenericLinuxDaemon(
@@ -245,6 +255,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
                         stdout_pipe=False)
         try:
             daemon.register('mock-plugin')
+
+            # check for idempotency
             daemon.register('mock-plugin')
             daemon.start()
             self.assert_registered_tasks(
@@ -279,6 +291,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
                 self.queue,
                 additional_tasks=set(['mock_plugin.tasks.run'])
             )
+
+            # check for idempotency
             daemon.restart()
             self.assert_registered_tasks(
                 self.queue,

@@ -23,20 +23,6 @@ class DaemonException(BaseException):
     pass
 
 
-class DaemonAlreadyExistsException(DaemonException):
-
-    """
-    Exception indicating that a daemon with the given name already exists.
-    """
-
-    def __init__(self, name):
-        self.name = name
-        super(DaemonAlreadyExistsException, self).__init__(self.__str__())
-
-    def __str__(self):
-        return 'Daemon {0} already exists'.format(self.name)
-
-
 class DaemonStartupTimeout(DaemonException):
 
     """

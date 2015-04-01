@@ -251,4 +251,4 @@ def delete(name):
     daemon = DaemonFactory.load(name)
     daemon.delete()
     DaemonFactory.delete(name)
-    click.secho('Successfully deleted daemon: {0}'.format(name))
+    click.echo('Successfully deleted daemon: {0}'.format(name))

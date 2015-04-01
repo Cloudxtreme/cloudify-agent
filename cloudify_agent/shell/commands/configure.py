@@ -15,7 +15,6 @@
 
 import click
 
-from cloudify_agent.shell import utils
 from cloudify_agent.api import utils as api_utils
 from cloudify_agent.shell.main import handle_failures
 
@@ -40,8 +39,6 @@ def configure(disable_requiretty, relocated_env):
     """
 
     click.echo('Configuring...')
-    if not utils.is_initialized():
-        utils.initialize()
     if disable_requiretty:
         api_utils.disable_requiretty()
     if relocated_env:

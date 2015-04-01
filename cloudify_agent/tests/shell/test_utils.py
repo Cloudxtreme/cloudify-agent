@@ -43,3 +43,14 @@ class TestUtils(BaseShellTest):
             utils.get_init_directory(), 'daemons'
         )
         self.assertEqual(storage_directory, utils.get_storage_directory())
+
+    def test_failure_has_possible_solutions(self):
+        failure = RuntimeError()
+        failure.possible_solutions = ['dummy']
+        possible_solutions = utils.get_possible_solutions(failure)
+        self.assertEqual(possible_solutions, '  - dummy\n')
+
+    def test_failure_has_no_possible_solutions(self):
+        failure = RuntimeError()
+        possible_solutions = utils.get_possible_solutions(failure)
+        self.assertEqual(possible_solutions, '')

@@ -10,17 +10,13 @@ logging:
   format: '%(message)s'
   file_format: '%(asctime)s [%(levelname)s] [%(name)s] %(message)s'
 
-  # configuring level per logger, explicit formats can also be specified here
+  # configuring level per logger
   loggers:
 
-    cloudify_agent.api.pm.initd:
-      level: info
+    cloudify_agent.api.pm.initd: info
 
-    cloudify_agent.api.utils:
-      level: info
+    cloudify_agent.api.utils: info
 
-    cloudify_agent.shell.daemon_factory:
-      level: info
+    cloudify_agent.shell.daemon_factory: info
 
-    cloudify_agent.shell.utils:
-      level: info
+    cloudify_agent.shell.utils: info

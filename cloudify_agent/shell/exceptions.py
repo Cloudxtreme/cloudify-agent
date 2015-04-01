@@ -32,7 +32,7 @@ class CloudifyAgentException(click.ClickException):
 
     def __str__(self):
         return '{0}{1}{2}'.format(self.message, os.linesep,
-                                  utils.show_possible_solutions(self))
+                                  utils.get_possible_solutions(self))
 
 
 class CloudifyAgentNotFoundException(CloudifyAgentException):

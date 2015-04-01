@@ -14,6 +14,9 @@
 #  * limitations under the License.
 
 import os
+import logging
+import logging.config
+import yaml
 
 from cloudify_agent.api import utils as api_utils
 
@@ -32,9 +35,9 @@ def initialize(logfile=None):
 
     """
 
-    init_directory = get_init_directory()
-    if os.path.exists(init_directory):
+    if is_initialized():
         return
+    init_directory = get_init_directory()
     os.makedirs(init_directory)
     if not logfile:
         logfile = os.path.join(init_directory, 'cloudify-agent.log')
@@ -78,7 +81,7 @@ def get_storage_directory():
     )
 
 
-def show_possible_solutions(failure):
+def get_possible_solutions(failure):
 
     def recommend(possible_solutions):
         failure_message = 'Possible solutions'
@@ -93,4 +96,57 @@ def show_possible_solutions(failure):
 
 
 def setup_loggers(debug):
-    pass
+    initialize()
+    config_path = os.path.join(get_init_directory(), 'logging.yaml')
+    logging_config = yaml.safe_load(file(config_path, 'r'))['logging']
+    loggers_config = logging_config['loggers']
+    logfile = logging_config['filename']
+    logfile_format = logging_config['file_format']
+    log_format = logging_config['format']
+
+    handlers = {
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'file',
+            'maxBytes': '5000000',
+            'backupCount': '20',
+            'filename': logfile
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
+            'formatter': 'console'
+        }
+    }
+
+    formatters = {
+        'file': {
+            'format': logfile_format
+        },
+        'console': {
+            'format': log_format
+        }
+    }
+
+    logger_dict = {
+        'version': 1,
+        'handlers': handlers,
+        'formatters': formatters
+    }
+
+    # add handlers to every logger specified in the file
+    loggers = {}
+    for logger_name in loggers_config:
+        loggers[logger_name] = {
+            'handlers': list(handlers.keys())
+        }
+    logger_dict['loggers'] = loggers
+
+    # set level for each logger
+    for logger_name, logging_level in loggers_config.iteritems():
+        log = logging.getLogger(logger_name)
+        level = logging._levelNames[
+            logging.DEBUG if debug else logging_level.upper()]
+        log.setLevel(level)
+
+    logging.config.dictConfig(logger_dict)

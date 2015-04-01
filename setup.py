@@ -30,11 +30,6 @@ install_requires = [
     'jinja2==2.7.2'
 ]
 
-try:
-    import argparse  # NOQA
-except ImportError, e:
-    install_requires.append('argparse==1.2.2')
-
 setup(
     name='cloudify-agent',
     version='3.2a1',
@@ -45,8 +40,7 @@ setup(
         'cloudify_agent.api',
         'cloudify_agent.api.pm',
         'cloudify_agent.shell',
-        'cloudify_agent.shell.commands',
-        'cloudify_agent.shell.subcommands'
+        'cloudify_agent.shell.commands'
     ],
     package_data={
         'cloudify_agent': [

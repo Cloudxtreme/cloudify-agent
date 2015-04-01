@@ -32,25 +32,7 @@ class CloudifyAgentError(click.ClickException):
 
     def __str__(self):
         return '{0}{1}{2}'.format(self.message, os.linesep,
-                                  utils.show_possible_solutions(self))
-
-
-class CloudifyAgentNotInitializedError(CloudifyAgentError):
-
-    """
-    Error indicating an operation that requires initialization was executed
-    prior to initializing.
-    """
-
-    possible_solutions = [
-        "Run 'cloudify-agent init' in the current directory"
-    ]
-
-    def __init__(self):
-        super(CloudifyAgentNotInitializedError, self).__init__(self.__str__())
-
-    def __str__(self):
-        return 'Cloudify Agent is not initialized'
+                                  utils.get_possible_solutions(self))
 
 
 class CloudifyAgentNotImplementedError(CloudifyAgentError):

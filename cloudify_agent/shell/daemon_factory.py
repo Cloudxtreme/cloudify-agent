@@ -15,7 +15,8 @@
 
 import os
 import json
-import logging
+
+from cloudify.utils import setup_default_logger
 
 from cloudify_agent.api.pm.base import Daemon
 from cloudify_agent.shell import exceptions
@@ -23,7 +24,7 @@ from cloudify_agent.shell import errors
 from cloudify_agent.shell import utils
 
 
-logger = logging.getLogger('cloudify_agent.shell.daemon_factory')
+logger = setup_default_logger('cloudify_agent.shell.daemon_factory')
 
 
 class DaemonFactory(object):
@@ -127,6 +128,7 @@ class DaemonFactory(object):
             storage_directory, '{0}.json'.format(
                 daemon.name)
         )
+        logger.debug('Saving daemon configuration')
         with open(daemon_path, 'w') as f:
             props = daemon.__dict__
             # remove non-serializable objects

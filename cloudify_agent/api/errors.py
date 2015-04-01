@@ -43,7 +43,7 @@ class DaemonParametersError(DaemonError):
 class MissingMandatoryParamError(DaemonParametersError):
 
     """
-    Error indicating the a mandatory parameters was not supplied.
+    Error indicating that a mandatory parameter was not supplied.
     """
 
     def __init__(self, param):

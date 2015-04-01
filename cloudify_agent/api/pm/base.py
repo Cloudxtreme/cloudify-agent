@@ -15,8 +15,8 @@
 
 import uuid
 import os
-from celery import Celery
 
+from celery import Celery
 from cloudify.utils import LocalCommandRunner
 from cloudify.utils import setup_default_logger
 
@@ -34,7 +34,15 @@ class Daemon(object):
 
     """
     Base class for daemon implementations.
-    Following is all the common daemon keyword arguments:
+    Following is all the available common daemon keyword arguments:
+
+    ``manager_ip``:
+
+        the ip address of the manager host. (Required)
+
+    ``user``:
+
+        the user this agent will run under. (Required)
 
     ``name``:
 
@@ -46,22 +54,12 @@ class Daemon(object):
 
         the queue this agent will listen to. It is possible to create
         different workers with the same queue, however this is discouraged.
-        to create more workers that process tasks
-        of a given queue, use the 'min_workers' and 'max_workers' key
+        to create more workers that process tasks of a given queue, use the
+        'min_workers' and 'max_workers' keys
 
     ``host``:
 
         the ip address of the host this agent will run on.
-
-    ``manager_ip``:
-
-        the ip address of the manager host.
-
-    ``user``:
-
-        the user this agent will run under.
-
-    Optional keys are:
 
     ``workdir``:
 
@@ -124,11 +122,10 @@ class Daemon(object):
         # Optional parameters
         self.validate_optional(params)
 
-        broker_ip = params.get(
+        self.broker_ip = params.get(
             'broker_ip') or self.manager_ip
-        broker_port = params.get(
+        self.broker_port = params.get(
             'broker_port') or defaults.BROKER_PORT
-
         self.name = params.get(
             'name') or 'cloudify-agent-{0}'.format(uuid.uuid4())
         self.queue = params.get(
@@ -137,8 +134,8 @@ class Daemon(object):
             'host') or '127.0.0.1'
         self.broker_url = params.get(
             'broker_url') or defaults.BROKER_URL.format(
-            broker_ip,
-            broker_port)
+            self.broker_ip,
+            self.broker_port)
         self.manager_port = params.get(
             'manager_port') or defaults.MANAGER_PORT
         self.min_workers = params.get(
@@ -190,7 +187,7 @@ class Daemon(object):
         :param params: parameters of the daemon.
         :type params: dict
 
-        :raise DaemonConfigurationError:
+        :raise DaemonParametersError:
         in case one of the parameters is faulty.
         """
 

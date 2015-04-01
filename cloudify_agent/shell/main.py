@@ -14,8 +14,6 @@
 #  * limitations under the License.
 
 import sys
-import StringIO
-import traceback
 from functools import wraps
 
 import click
@@ -31,11 +29,10 @@ codes = {
 
     # exception start from 101
     api_exceptions.DaemonException: 101,
-    api_exceptions.DaemonAlreadyExistsException: 102,
-    api_exceptions.DaemonShutdownTimeout: 103,
-    api_exceptions.DaemonStartupTimeout: 104,
-    api_exceptions.DaemonStillRunningException: 105,
-    cli_exceptions.CloudifyAgentNotFoundException: 106,
+    api_exceptions.DaemonShutdownTimeout: 102,
+    api_exceptions.DaemonStartupTimeout: 103,
+    api_exceptions.DaemonStillRunningException: 104,
+    cli_exceptions.CloudifyAgentNotFoundException: 105,
     cli_exceptions.CloudifyAgentException: 100,
 
     # errors start from 201
@@ -44,7 +41,6 @@ codes = {
     api_errors.DaemonConfigurationError: 203,
     api_errors.MissingMandatoryParamError: 204,
     cli_errors.CloudifyAgentNotImplementedError: 205,
-    cli_errors.CloudifyAgentNotInitializedError: 206,
     cli_errors.CloudifyAgentError: 200
 }
 
