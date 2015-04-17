@@ -71,7 +71,7 @@ class ConvertingDict(dict):
                 result.parent = self
                 result.key = key
         return result
-        
+
     def get(self, key, default=None):
         value = dict.get(self, key, default)
         result = self.configurator.convert(value)
@@ -82,7 +82,7 @@ class ConvertingDict(dict):
                 result.parent = self
                 result.key = key
         return result
-        
+
     def pop(self, key, default=None):
         value = dict.pop(self, key, default)
         result = self.configurator.convert(value)
@@ -146,7 +146,7 @@ class BaseConfigurator(object):
     The configurator base class which defines some useful defaults.
 
     """
-    
+
     CONVERT_PATTERN = re.compile(r'^(?P<prefix>[a-z]+)://(?P<suffix>.*)$')
 
     WORD_PATTERN = re.compile(r'^\s*(\w+)\s*')
@@ -155,8 +155,8 @@ class BaseConfigurator(object):
     DIGIT_PATTERN = re.compile(r'^\d+$')
 
     value_converters = {
-        'ext' : 'ext_convert',
-        'cfg' : 'cfg_convert',
+        'ext': 'ext_convert',
+        'cfg': 'cfg_convert',
     }
 
     # We might want to use a different one, e.g. importlib
@@ -192,7 +192,7 @@ class BaseConfigurator(object):
     def ext_convert(self, value):
         """Default converter for the ext:// protocol."""
         return self.resolve(value)
-    
+
     def cfg_convert(self, value):
         """Default converter for the cfg:// protocol."""
         rest = value
@@ -255,7 +255,7 @@ class BaseConfigurator(object):
                     converter = getattr(self, converter)
                     value = converter(suffix)
         return value
-    
+
     def configure_custom(self, config):
 
         """
@@ -313,7 +313,7 @@ class DictConfigurator(BaseConfigurator):
                     for name in handlers:
                         if name not in logging._handlers:
                             raise ValueError('No handler found with '
-                                             'name %r'  % name)
+                                             'name %r' % name)
                         else:
                             try:
                                 handler = logging._handlers[name]
@@ -340,10 +340,10 @@ class DictConfigurator(BaseConfigurator):
                                          'logger: %s' % e)
             else:
                 disable_existing = config.pop('disable_existing_loggers', True)
-                
+
                 logging._handlers.clear()
                 del logging._handlerList[:]
-                    
+
                 # Do formatters first - they don't refer to anything else
                 formatters = config.get('formatters', empty_dict)
                 for name in formatters:
@@ -396,7 +396,7 @@ class DictConfigurator(BaseConfigurator):
                     except StandardError, e:
                         raise ValueError('Unable to configure logger '
                                          '%r: %s' % (name, e))
-                    
+
                 for log in existing:
                     logger = root.manager.loggerDict[log]
                     if log in child_loggers:
@@ -405,12 +405,12 @@ class DictConfigurator(BaseConfigurator):
                         logger.propagate = True
                     elif disable_existing:
                         logger.disabled = True
-    
+
                 # And finally, do the root logger
                 root = config.get('root', None)
                 if root:
                     try:
-                        self.configure_root(root)                        
+                        self.configure_root(root)
                     except StandardError, e:
                         raise ValueError('Unable to configure root '
                                          'logger: %s' % e)
@@ -438,7 +438,7 @@ class DictConfigurator(BaseConfigurator):
             dfmt = config.get('datefmt', None)
             result = logging.Formatter(fmt, dfmt)
         return result
-    
+
     def configure_filter(self, config):
         """Configure a filter from a dictionary."""
         if '()' in config:
@@ -469,7 +469,8 @@ class DictConfigurator(BaseConfigurator):
         filters = config.pop('filters', None)
         if '()' in config:
             c = config.pop('()')
-            if not hasattr(c, '__call__') and hasattr(types, 'ClassType') and type(c) != types.ClassType:
+            if not hasattr(c, '__call__') and hasattr(types, 'ClassType') \
+                    and not isinstance(c, types.ClassType):
                 c = self.resolve(c)
             factory = c
         else:
@@ -533,7 +534,7 @@ class DictConfigurator(BaseConfigurator):
             filters = config.get('filters', None)
             if filters:
                 self.add_filters(logger, filters)
-        
+
     def configure_logger(self, name, config, incremental=False):
 
         """
@@ -545,7 +546,7 @@ class DictConfigurator(BaseConfigurator):
         propagate = config.get('propagate', None)
         if propagate is not None:
             logger.propagate = propagate
-            
+
     def configure_root(self, config, incremental=False):
 
         """
