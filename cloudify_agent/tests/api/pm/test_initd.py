@@ -24,15 +24,14 @@ from cloudify_agent.api.pm.initd import GenericLinuxDaemon
 from cloudify_agent import VIRTUALENV
 from cloudify_agent.tests import resources
 from cloudify_agent.tests.api.pm import BaseDaemonLiveTestCase
-from cloudify_agent.tests.api.pm import SudoLessLocalCommandRunner
 from cloudify_agent.tests.api.pm import patch_unless_travis
 
 
-def _sudoless_start_command(daemon):
+def _non_service_start_command(daemon):
     return '{0} start'.format(daemon.script_path)
 
 
-def _sudoless_stop_command(daemon):
+def _non_service_stop_command(daemon):
     return '{0} stop'.format(daemon.script_path)
 
 
@@ -41,9 +40,6 @@ CONFIG_DIR = '/tmp/etc/default'
 
 
 @patch_unless_travis(
-    'cloudify_agent.api.pm.base.LocalCommandRunner',
-    SudoLessLocalCommandRunner)
-@patch_unless_travis(
     'cloudify_agent.api.pm.initd.GenericLinuxDaemon.SCRIPT_DIR',
     SCRIPT_DIR)
 @patch_unless_travis(
@@ -51,10 +47,10 @@ CONFIG_DIR = '/tmp/etc/default'
     CONFIG_DIR)
 @patch_unless_travis(
     'cloudify_agent.api.pm.initd.start_command',
-    _sudoless_start_command)
+    _non_service_start_command)
 @patch_unless_travis(
     'cloudify_agent.api.pm.initd.stop_command',
-    _sudoless_stop_command)
+    _non_service_stop_command)
 class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
 
     """
@@ -96,6 +92,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
+
         daemon.configure()
         self.assertTrue(os.path.exists(daemon.script_path))
         self.assertTrue(os.path.exists(daemon.config_path))

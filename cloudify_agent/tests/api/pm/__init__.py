@@ -53,28 +53,6 @@ BUILT_IN_TASKS = [
 CLOUDIFY_STORAGE_FOLDER = '/tmp/.cloudify-agent/agents'
 
 
-class SudoLessLocalCommandRunner(LocalCommandRunner):
-
-    """
-    Command runner that runs `sudo` exactly the
-    same as `run`. (i.e no 'sudo' prefix)
-
-    """
-
-    def sudo(self, command,
-             exit_on_failure=True,
-             stdout_pipe=True,
-             stderr_pipe=True,
-             cwd=None):
-        return super(SudoLessLocalCommandRunner, self).run(
-            command,
-            exit_on_failure,
-            stdout_pipe,
-            stderr_pipe,
-            cwd
-        )
-
-
 def travis():
     return 'TRAVIS_BUILD_DIR' in os.environ
 
@@ -97,12 +75,7 @@ class BaseDaemonLiveTestCase(testtools.TestCase):
         self.logger = setup_default_logger(
             'cloudify-agent.tests.api.pm',
             level=logging.DEBUG)
-        if travis():
-            # travis CI can run sudo commands
-            self.runner = LocalCommandRunner(self.logger)
-        else:
-            # when running locally, avoid sudo
-            self.runner = SudoLessLocalCommandRunner(self.logger)
+        self.runner = LocalCommandRunner(self.logger)
         self.temp_folder = tempfile.mkdtemp(prefix='cloudify-agent-tests-')
         self.currdir = os.getcwd()
         self.username = getpass.getuser()
