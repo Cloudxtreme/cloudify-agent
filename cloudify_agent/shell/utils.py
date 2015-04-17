@@ -15,10 +15,10 @@
 
 import os
 import logging
-import logging.config
 import yaml
 
 from cloudify_agent.api import utils as api_utils
+from cloudify_agent import dictconfig
 
 
 def initialize(logfile=None):
@@ -149,4 +149,4 @@ def setup_loggers(debug):
             logging.DEBUG if debug else logging_level.upper()]
         log.setLevel(level)
 
-    logging.config.dictConfig(logger_dict)
+    dictconfig.dictConfig(logger_dict)
