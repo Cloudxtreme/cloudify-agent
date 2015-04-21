@@ -47,7 +47,7 @@ setup(
             'resources/initd/celeryd.conf.template',
             'resources/initd/celeryd.template',
             'resources/initd/disable-requiretty.sh',
-            'resources/shell/config.yaml'],
+            'resources/shell/logging.yaml'],
         },
     description="Cloudify's Agent",
     install_requires=install_requires,
