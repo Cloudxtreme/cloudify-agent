@@ -22,9 +22,20 @@ CLOUDIFY_DAEMON_GROUP = 'CLOUDIFY_DAEMON_GROUP'
 CLOUDIFY_BROKER_IP = 'CLOUDIFY_BROKER_IP'
 CLOUDIFY_BROKER_PORT = 'CLOUDIFY_BROKER_PORT'
 CLOUDIFY_MANAGER_PORT = 'CLOUDIFY_MANAGER_PORT'
-CLOUDIFY_DAEMON_AUTOSCALE = 'CLOUDIFY_DAEMON_AUTOSCALE'
 CLOUDIFY_DAEMON_PROCESS_MANAGEMENT = 'CLOUDIFY_DAEMON_PROCESS_MANAGEMENT'
 CLOUDIFY_DAEMON_NAME = 'CLOUDIFY_DAEMON_NAME'
 CLOUDIFY_DAEMON_MIN_WORKERS = 'CLOUDIFY_DAEMON_MIN_WORKERS'
 CLOUDIFY_DAEMON_MAX_WORKERS = 'CLOUDIFY_DAEMON_MAX_WORKERS'
 CLOUDIFY_BROKER_URL = 'CLOUDIFY_BROKER_URL'
+
+
+###################################################
+# -------------------IMPORTANT------------------- #
+# A copy of this file also exists in the agent    #
+# installer project so to not create a circular   #
+# dependency between the two projects. This issue #
+# needs to be resolved, but until then, please    #
+# add any functionality added here to the agent   #
+# installer as well.                              #
+# -------------------IMPORTANT------------------- #
+###################################################

@@ -14,7 +14,7 @@
 #  * limitations under the License.
 
 import os
-
+import getpass
 import testtools
 
 
@@ -27,8 +27,7 @@ class TestDaemonDefaults(testtools.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.daemon = Daemon(
-            manager_ip='manager_ip',
-            user='user'
+            manager_ip='manager_ip'
         )
 
     def test_default_basedir(self):
@@ -49,6 +48,9 @@ class TestDaemonDefaults(testtools.TestCase):
 
     def test_default_name(self):
         self.assertTrue('cloudify-agent-' in self.daemon.name)
+
+    def test_default_user(self):
+        self.assertEqual(getpass.getuser(), self.daemon.user)
 
     def test_default_queue(self):
         self.assertEqual('{0}-queue'.format(
@@ -72,18 +74,6 @@ class TestDaemonValidations(testtools.TestCase):
             self.fail('Expected ValueError due to missing manager_ip')
         except errors.MissingMandatoryParamError as e:
             self.assertTrue('manager_ip is mandatory' in e.message)
-
-    def test_missing_user(self):
-        try:
-            Daemon(
-                name='name',
-                queue='queue',
-                host='queue',
-                manager_ip='manager_ip'
-            )
-            self.fail('Expected ValueError due to missing user')
-        except errors.MissingMandatoryParamError as e:
-            self.assertTrue('user is mandatory' in e.message)
 
     def test_bad_min_workers(self):
         try:
