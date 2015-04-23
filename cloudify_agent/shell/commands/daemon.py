@@ -13,12 +13,16 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import os
+
 import click
 
 from cloudify_agent.api import defaults
 from cloudify_agent.shell import env
 from cloudify_agent.shell.daemon_factory import DaemonFactory
 from cloudify_agent.shell.main import handle_failures
+from cloudify_agent.shell import utils
+from cloudify_agent.shell import exceptions
 
 
 @click.command()
@@ -260,3 +264,26 @@ def delete(name):
     daemon.delete()
     DaemonFactory.delete(name)
     click.echo('Successfully deleted daemon: {0}'.format(name))
+
+
+@click.command()
+@click.option('--name',
+              help='The name of the daemon. [env {0}]'
+              .format(env.CLOUDIFY_DAEMON_NAME),
+              required=True,
+              envvar=env.CLOUDIFY_DAEMON_NAME)
+@handle_failures
+def inspect(name):
+
+    """
+    Inspect daemon properties.
+
+    """
+    daemon_path = os.path.join(
+        utils.get_storage_directory(),
+        '{0}.json'.format(name)
+    )
+    if not os.path.exists(daemon_path):
+        raise exceptions.CloudifyAgentNotFoundException(name)
+    with open(daemon_path) as f:
+        click.echo(f.read())

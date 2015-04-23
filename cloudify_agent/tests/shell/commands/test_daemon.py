@@ -13,8 +13,12 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import os
+import json
+
 from mock import patch
 
+from cloudify_agent.shell import utils
 from cloudify_agent.tests.shell.commands import BaseCommandLineTestCase
 
 
@@ -116,6 +120,32 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
         daemon = factory_load.return_value
         daemon.register.assert_called_once_with('plugin')
 
+    @patch('cloudify_agent.shell.commands.daemon.click')
+    def test_inspect(self, click, _):
+
+        # create the daemon file so we have something to work with
+        name = 'test-cloudify-agent'
+        props = {'key': 'value'}
+
+        daemon_path = os.path.join(
+            utils.get_storage_directory(),
+            '{0}.json'.format(name)
+        )
+        os.makedirs(os.path.dirname(daemon_path))
+        with open(daemon_path, 'w') as f:
+            f.write(json.dumps(props))
+
+        self._run('cloudify-agent daemon inspect --name=test-cloudify-agent')
+
+        click_echo = click.echo
+        click_echo.assert_called_once_with(json.dumps(props))
+
+    def test_inspect_non_existing_agent(self, _):
+        try:
+            self._run('cloudify-agent daemon inspect --name=non-existing',
+                      raise_system_exit=True)
+        except SystemExit as e:
+            self.assertEqual(e.code, 105)
+
     def test_required(self, _):
-        self._run('cloudify-agent daemon create --manager-ip=manager '
-                  '--user=user')
+        self._run('cloudify-agent daemon create --manager-ip=manager')

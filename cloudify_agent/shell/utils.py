@@ -38,7 +38,8 @@ def initialize(logfile=None):
     if is_initialized():
         return
     init_directory = get_init_directory()
-    os.makedirs(init_directory)
+    if not os.path.exists(init_directory):
+        os.makedirs(init_directory)
     if not logfile:
         logfile = os.path.join(init_directory, 'cloudify-agent.log')
     api_utils.render_template_to_file(
@@ -55,7 +56,8 @@ def is_initialized():
     :return: whether or not the directory is initialized.
     :rtype `bool`
     """
-    return os.path.exists(get_init_directory())
+    return os.path.exists(
+        os.path.join(get_init_directory(), 'logging.yaml'))
 
 
 def get_init_directory():

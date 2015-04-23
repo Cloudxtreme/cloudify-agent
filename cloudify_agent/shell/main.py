@@ -96,5 +96,6 @@ daemon_sub_command.add_command(daemon.stop)
 daemon_sub_command.add_command(daemon.delete)
 daemon_sub_command.add_command(daemon.restart)
 daemon_sub_command.add_command(daemon.register)
+daemon_sub_command.add_command(daemon.inspect)
 
 main.add_command(daemon_sub_command)
