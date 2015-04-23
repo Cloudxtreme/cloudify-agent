@@ -16,7 +16,7 @@
 CLOUDIFY_DAEMON_QUEUE = 'CLOUDIFY_DAEMON_QUEUE'
 CLOUDIFY_AGENT_HOST = 'CLOUDIFY_AGENT_HOST'
 CLOUDIFY_MANAGER_IP = 'CLOUDIFY_MANAGER_IP'
-CLOUDIFY_DAEMON_BASEDIR = 'CLOUDIFY_DAEMON_BASEDIR'
+CLOUDIFY_DAEMON_WORKDIR = 'CLOUDIFY_DAEMON_WORKDIR'
 CLOUDIFY_DAEMON_USER = 'CLOUDIFY_DAEMON_USER'
 CLOUDIFY_DAEMON_GROUP = 'CLOUDIFY_DAEMON_GROUP'
 CLOUDIFY_BROKER_IP = 'CLOUDIFY_BROKER_IP'
@@ -34,7 +34,7 @@ CLOUDIFY_DAEMON_LOG_LEVEL = 'CLOUDIFY_DAEMON_LOG_LEVEL'
 ###################################################
 # -------------------IMPORTANT------------------- #
 # A copy of this file also exists in the agent    #
-# installer project so to not create a circular   #
+# installer project as to not create a circular   #
 # dependency between the two projects. This issue #
 # needs to be resolved, but until then, please    #
 # add any functionality added here to the agent   #

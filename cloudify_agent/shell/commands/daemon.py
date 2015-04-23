@@ -50,8 +50,8 @@ from cloudify_agent.shell import exceptions
 @click.option('--workdir',
               help='Working directory for runtime files (pid, log). '
                    'Defaults to current working directory. [env {0}]'
-                   .format(env.CLOUDIFY_DAEMON_BASEDIR),
-              envvar=env.CLOUDIFY_DAEMON_BASEDIR)
+                   .format(env.CLOUDIFY_DAEMON_WORKDIR),
+              envvar=env.CLOUDIFY_DAEMON_WORKDIR)
 @click.option('--broker-ip',
               help='The broker ip to connect to. '
                    'If not specified, the --manager_ip '
