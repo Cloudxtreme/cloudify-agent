@@ -73,3 +73,9 @@ class TestUtils(testtools.TestCase):
         os.system('chmod +x {0}'.format(path))
         code = os.system(path)
         self.assertEqual(0, code)
+
+    def test_env_to_file(self):
+        env_path = utils.env_to_file({'key': 'value'})
+        with open(env_path) as f:
+            content = f.read()
+        self.assertTrue('export key=value' in content)
