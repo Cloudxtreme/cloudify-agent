@@ -36,11 +36,11 @@ class TestUtils(testtools.TestCase):
     def test_rendered_template_to_file(self):
         tempfile = utils.render_template_to_file(
             template_path='initd/celeryd.conf.template',
-            workdir='workdir'
+            manager_ip='127.0.0.1'
         )
         with open(tempfile) as f:
             rendered = f.read()
-            self.assertTrue('CELERY_WORK_DIR=workdir' in rendered)
+            self.assertTrue('export MANAGER_IP=127.0.0.1' in rendered)
 
     def test_resource_to_tempfile(self):
         tempfile = utils.resource_to_tempfile(

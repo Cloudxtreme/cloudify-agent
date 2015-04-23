@@ -268,7 +268,8 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             daemon.start()
             self.assert_registered_tasks(
                 self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
+                additional_tasks=set(['mock_plugin.tasks.run',
+                                      'mock_plugin.tasks.get_env_variable'])
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
@@ -297,14 +298,16 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             daemon.restart()
             self.assert_registered_tasks(
                 self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
+                additional_tasks=set(['mock_plugin.tasks.run',
+                                      'mock_plugin.tasks.get_env_variable'])
             )
 
             # check for idempotency
             daemon.restart()
             self.assert_registered_tasks(
                 self.queue,
-                additional_tasks=set(['mock_plugin.tasks.run'])
+                additional_tasks=set(['mock_plugin.tasks.run',
+                                      'mock_plugin.tasks.get_env_variable'])
             )
         finally:
             self.runner.run('{0}/bin/pip uninstall -y mock-plugin'

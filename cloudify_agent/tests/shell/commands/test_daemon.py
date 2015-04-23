@@ -42,7 +42,9 @@ class TestDaemonCommandLine(BaseCommandLineTestCase):
             max_workers=None,
             min_workers=None,
             broker_port=None,
-            manager_port=None
+            manager_port=None,
+            extra_env_path=None,
+            log_level=None
         )
 
         daemon = factory_new.return_value
