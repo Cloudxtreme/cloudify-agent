@@ -15,8 +15,6 @@
 
 import sys
 
-from mock import patch
-
 from cloudify_agent.shell import main as cli
 from cloudify_agent.tests.shell import BaseShellTest
 

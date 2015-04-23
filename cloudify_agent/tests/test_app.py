@@ -14,44 +14,55 @@
 #  * limitations under the License.
 
 import os
-import tempfile
 import testtools
+import tempfile
+from contextlib import contextmanager
+
+from cloudify_agent import app
+
+
+@contextmanager
+def env(key, value):
+    os.environ[key] = value
+    yield
+    del os.environ[key]
 
 
 class TestApp(testtools.TestCase):
 
     def test_broker_url_from_env(self):
-        os.environ['CELERY_BROKER_URL'] = 'test-url'
-        from cloudify_agent import app
-        self.assertEqual(app.broker_url, 'test-url')
+        with env('CELERY_BROKER_URL', 'test-url'):
+            reload(app)
+            self.assertEqual(app.broker_url, 'test-url')
 
     def test_broker_url_default(self):
-        from cloudify_agent import app
+        reload(app)
         self.assertEqual(app.broker_url, 'amqp://')
 
     def test_work_folder(self):
-        os.environ['CELERYD_WORK_DIR'] = 'test-folder'
-        from cloudify_agent import app
-        self.assertEqual(app.work_folder, 'test-folder')
+        with env('CELERYD_WORK_DIR', 'test-folder'):
+            reload(app)
+            self.assertEqual(app.work_folder, 'test-folder')
 
     def test_app(self):
-        os.environ['CELERY_BROKER_URL'] = 'test-url'
-        from cloudify_agent import app
-        self.assertEqual(app.app.conf['BROKER_URL'], 'test-url')
-        self.assertEqual(app.app.conf['CELERY_RESULT_BACKEND'], 'test-url')
+        with env('CELERY_BROKER_URL', 'test-url'):
+            reload(app)
+            self.assertEqual(app.app.conf['BROKER_URL'], 'test-url')
+            self.assertEqual(app.app.conf['CELERY_RESULT_BACKEND'], 'test-url')
 
     def test_exception_hook(self):
-        os.environ['CELERYD_WORK_DIR'] = tempfile.mkdtemp()
-        from cloudify_agent import app
-        import sys
-        sys.excepthook(Exception, Exception('Error'), None)
-        work_folder = app.work_folder
+        test_folder = tempfile.mkdtemp()
+        with env('CELERYD_WORK_DIR', test_folder):
+            reload(app)
+            import sys
+            sys.excepthook(Exception, Exception('Error'), None)
+            work_folder = app.work_folder
 
-        # check file was created with the exception details
-        error_file = os.path.join(work_folder, 'celery_error.out')
-        self.assertTrue(os.path.exists(error_file))
+            # check file was created with the exception details
+            error_file = os.path.join(work_folder, 'celery_error.out')
+            self.assertTrue(os.path.exists(error_file))
 
-        with open(error_file) as f:
-            content = f.read()
-        self.assertTrue("Type: <type 'exceptions.Exception'>" in content)
-        self.assertTrue("Value: Error" in content)
+            with open(error_file) as f:
+                content = f.read()
+            self.assertTrue("Type: <type 'exceptions.Exception'>" in content)
+            self.assertTrue("Value: Error" in content)
