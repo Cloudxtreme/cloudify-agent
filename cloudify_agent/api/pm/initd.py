@@ -213,9 +213,6 @@ class GenericLinuxDaemon(Daemon):
             self.logger.debug('Not creating includes '
                               'since it already exists.')
             return
-        # directory = os.path.dirname(self.includes_path)
-        # if not os.path.exists(directory):
-        #     os.makedirs(directory)
         with open(self.includes_path, 'w') as f:
             includes = []
             for plugin in included_plugins:

@@ -44,8 +44,6 @@ if work_folder:
     current_excepthook = sys.excepthook
 
     def new_excepthook(exception_type, value, the_traceback):
-        if not os.path.exists(work_folder):
-            os.makedirs(work_folder)
         error_dump_path = os.path.join(work_folder, 'celery_error.out')
         with open(error_dump_path, 'w') as f:
             f.write('Type: {0}\n'.format(exception_type))
