@@ -13,6 +13,7 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+import os
 
 from cloudify.decorators import operation
 
@@ -20,3 +21,8 @@ from cloudify.decorators import operation
 @operation
 def run(**kwargs):
     pass
+
+
+@operation
+def get_env_variable(env_variable, **kwargs):
+    return os.environ[env_variable]

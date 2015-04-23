@@ -51,8 +51,6 @@ class GenericLinuxDaemon(Daemon):
 
     def configure(self):
 
-        # TODO - check what this method should return
-
         """
         This method creates the following files:
 
@@ -240,11 +238,6 @@ class GenericLinuxDaemon(Daemon):
 
     def _create_config(self):
         if os.path.exists(self.config_path):
-
-            # TODO check for configuration conflicts
-            # in case there is a conflict we should raise an error.
-            # if the configuration is the same we can just leave it like so.
-
             self.logger.debug('Not creating config '
                               'since it already exists.')
             return
@@ -260,7 +253,8 @@ class GenericLinuxDaemon(Daemon):
             min_workers=self.min_workers,
             max_workers=self.max_workers,
             includes_path=self.includes_path,
-            virtualenv_path=VIRTUALENV
+            virtualenv_path=VIRTUALENV,
+            extra_env_path=self.extra_env_path
         )
 
         self.runner.sudo('cp {0} {1}'.format(rendered, self.config_path))

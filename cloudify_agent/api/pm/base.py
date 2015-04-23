@@ -108,6 +108,12 @@ class Daemon(object):
         suggests, it will never exceed this number. allowing for the control
         of resource usage. defaults to 5.
 
+    ``extra_env_path``:
+
+        path to a file containing environment variables to be added to the
+        daemon environment. the file should be in the format of
+        multiple 'export A=B' lines.
+
     """
 
     # override this when adding implementations.
@@ -146,6 +152,7 @@ class Daemon(object):
             'max_workers') or defaults.MAX_WORKERS
         self.workdir = params.get(
             'workdir') or os.getcwd()
+        self.extra_env_path = params.get('extra_env_path')
 
         # save as a property so that it will be persisted in the json files
         self.process_management = self.PROCESS_MANAGEMENT

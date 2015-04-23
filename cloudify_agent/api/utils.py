@@ -162,3 +162,32 @@ def fix_virtualenv():
                        .format(VIRTUALENV, link, link_path))
         except CommandExecutionException:
             pass
+
+
+def env_to_file(env_variables, destination_path=None):
+
+    """
+
+    :param env_variables: environment variables
+    :type env_variables: dict
+
+    :param destination_path: destination path of a file where the
+    environment variables will be stored. the stored variables will be a
+    bash script you can then source.
+    :type destination_path: str
+
+    :return: path to the file containing the env variables
+    :rtype `str`
+    """
+
+    if not destination_path:
+        destination_path = tempfile.mkstemp(suffix='env')[1]
+
+    with open(destination_path, 'a') as f:
+        f.write('#!/bin/bash')
+        f.write(os.linesep)
+        for key, value in env_variables.iteritems():
+            f.write('export {0}={1}'.format(key, value))
+            f.write(os.linesep)
+
+    return destination_path

@@ -21,6 +21,7 @@ from cloudify.utils import setup_default_logger
 
 from cloudify_agent.api import exceptions
 from cloudify_agent.api.pm.initd import GenericLinuxDaemon
+from cloudify_agent.api import utils
 from cloudify_agent import VIRTUALENV
 from cloudify_agent.tests import resources
 from cloudify_agent.tests.api.pm import BaseDaemonLiveTestCase
@@ -114,6 +115,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         daemon.start()
         self.assert_daemon_alive(self.queue)
@@ -133,6 +135,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin-error'
                         .format(VIRTUALENV,
@@ -160,6 +163,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         try:
             daemon.start(timeout=-1)
@@ -175,6 +179,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         daemon.start()
         daemon.stop()
@@ -193,6 +198,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         daemon.start()
         try:
@@ -209,6 +215,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         daemon.start()
         daemon.stop()
@@ -232,6 +239,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         daemon.start()
         self.assertRaises(exceptions.DaemonStillRunningException,
@@ -246,6 +254,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
                         .format(VIRTUALENV,
@@ -275,6 +284,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon.create()
         daemon.configure()
         from cloudify_agent.tests import resources
         self.runner.run('{0}/bin/pip install {1}/mock-plugin'
@@ -312,6 +322,7 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon1.create()
         daemon1.configure()
 
         daemon1.start()
@@ -328,8 +339,46 @@ class TestGenericLinuxDaemon(BaseDaemonLiveTestCase):
             user=self.username,
             workdir=self.temp_folder
         )
+        daemon2.create()
         daemon2.configure()
 
         daemon2.start()
         self.assert_daemon_alive(queue2)
         self.assert_registered_tasks(queue2)
+
+    def test_extra_env_path(self):
+        daemon = GenericLinuxDaemon(
+            name=self.name,
+            queue=self.queue,
+            host='127.0.0.1',
+            manager_ip='127.0.0.1',
+            user=self.username,
+            workdir=self.temp_folder,
+            extra_env_path=utils.env_to_file(
+                {'TEST_ENV_KEY': 'TEST_ENV_VALUE'}
+            )
+        )
+        daemon.create()
+        daemon.configure()
+        from cloudify_agent.tests import resources
+        self.runner.run('{0}/bin/pip install {1}/mock-plugin'
+                        .format(VIRTUALENV,
+                                os.path.dirname(resources.__file__)),
+                        stdout_pipe=False)
+        try:
+            daemon.register('mock-plugin')
+            daemon.start()
+
+            # check the env file was properly sourced by querying the env
+            # variable from the daemon process. this is done by a task
+            self.logger.info("Sending task "
+                             "'mock_plugin.tasks.get_env_variable'")
+            value = self.celery.send_task(
+                name='mock_plugin.tasks.get_env_variable',
+                queue=self.queue,
+                args=['TEST_ENV_KEY']).get(timeout=5)
+            self.assertEqual(value, 'TEST_ENV_VALUE')
+        finally:
+            self.runner.run('{0}/bin/pip uninstall -y mock-plugin'
+                            .format(VIRTUALENV),
+                            stdout_pipe=False)

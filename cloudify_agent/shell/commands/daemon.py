@@ -22,6 +22,11 @@ from cloudify_agent.shell.main import handle_failures
 
 
 @click.command()
+@click.option('--manager-ip',
+              help='The manager IP to connect to. [env {0}]'
+              .format(env.CLOUDIFY_MANAGER_IP),
+              required=True,
+              envvar=env.CLOUDIFY_MANAGER_IP)
 @click.option('--name',
               help='The name of the daemon. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_NAME),
@@ -34,15 +39,9 @@ from cloudify_agent.shell.main import handle_failures
               help='A resolvable IP address for this host. [env {0}]'
                    .format(env.CLOUDIFY_AGENT_HOST),
               envvar=env.CLOUDIFY_AGENT_HOST)
-@click.option('--manager-ip',
-              help='The manager IP to connect to. [env {0}]'
-                   .format(env.CLOUDIFY_MANAGER_IP),
-              required=True,
-              envvar=env.CLOUDIFY_MANAGER_IP)
 @click.option('--user',
               help='The user to create this daemon under. [env {0}]'
                    .format(env.CLOUDIFY_DAEMON_USER),
-              required=True,
               envvar=env.CLOUDIFY_DAEMON_USER)
 @click.option('--workdir',
               help='Working directory for runtime files (pid, log). '
@@ -79,6 +78,11 @@ from cloudify_agent.shell.main import handle_failures
                    'the autoscale configuration. [env {0}]'
               .format(env.CLOUDIFY_DAEMON_MAX_WORKERS),
               envvar=env.CLOUDIFY_DAEMON_MAX_WORKERS)
+@click.option('--extra-env-path',
+              help='Path to an environment file to be added to the daemon. ['
+                   'env {''0}]'
+                   .format(env.CLOUDIFY_DAEMON_EXTRA_ENV),
+              envvar=env.CLOUDIFY_DAEMON_EXTRA_ENV)
 @click.option('--process-management',
               help='The process management system to use '
                    'when creating the daemon. [env {0}]'
