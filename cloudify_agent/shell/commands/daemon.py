@@ -80,9 +80,13 @@ from cloudify_agent.shell.main import handle_failures
               envvar=env.CLOUDIFY_DAEMON_MAX_WORKERS)
 @click.option('--extra-env-path',
               help='Path to an environment file to be added to the daemon. ['
-                   'env {''0}]'
+                   'env {0}]'
                    .format(env.CLOUDIFY_DAEMON_EXTRA_ENV),
               envvar=env.CLOUDIFY_DAEMON_EXTRA_ENV)
+@click.option('--log-level',
+              help='Logging level for the daemon log file. [env {0}]'
+                   .format(env.CLOUDIFY_DAEMON_LOG_LEVEL),
+              envvar=env.CLOUDIFY_DAEMON_LOG_LEVEL)
 @click.option('--process-management',
               help='The process management system to use '
                    'when creating the daemon. [env {0}]'

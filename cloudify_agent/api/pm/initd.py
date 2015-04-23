@@ -254,7 +254,8 @@ class GenericLinuxDaemon(Daemon):
             max_workers=self.max_workers,
             includes_path=self.includes_path,
             virtualenv_path=VIRTUALENV,
-            extra_env_path=self.extra_env_path
+            extra_env_path=self.extra_env_path,
+            log_level=self.log_level
         )
 
         self.runner.sudo('cp {0} {1}'.format(rendered, self.config_path))
